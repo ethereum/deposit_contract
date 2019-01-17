@@ -1,69 +1,56 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from setuptools import (
-    setup,
-    find_packages,
-)
+from setuptools import setup, find_packages
 
-extras_require = {
+
+deps = {
     'test': [
-        "pytest==3.3.2",
-        "pytest-xdist",
-        "tox>=2.9.1,<3",
+        "tox==3.0.0",
+        "eth-tester[py-evm]==0.1.0b29",
+        "vyper==0.1.0b6",
+        "web3==4.3.0",
+        "pytest==3.6.1",
     ],
     'lint': [
-        "flake8==3.4.1",
-        "isort>=4.2.15,<5",
+        "mypy==0.620",
+        "flake8==3.5.0",
     ],
     'doc': [
         "Sphinx>=1.6.5,<2",
         "sphinx_rtd_theme>=0.1.9",
     ],
-    'dev': [
-        "bumpversion>=0.5.3,<1",
-        "pytest-watch>=4.1.0,<5",
-        "wheel",
-        "twine",
-        "ipython",
-    ],
 }
 
-extras_require['dev'] = (
-    extras_require['dev'] +
-    extras_require['test'] +
-    extras_require['lint'] +
-    extras_require['doc']
+
+deps['dev'] = (
+    deps['test'] +
+    deps['lint'] +
+    deps['doc']
 )
 
 setup(
-    name='<PYPI_NAME>',
+    name='deposit_contract',
     # *IMPORTANT*: Don't manually change the version here. Use `make bump`, as described in readme
     version='0.1.0-alpha.0',
-    description="""<PYPI_NAME>: <SHORT_DESCRIPTION>""",
-    long_description_markdown_filename='README.md',
-    author='Jason Carver',
-    author_email='ethcalibur+pip@gmail.com',
-    url='https://github.com/ethereum/<REPO_NAME>',
-    include_package_data=True,
-    install_requires=[
-        "eth-utils>=1,<2",
-    ],
-    setup_requires=['setuptools-markdown'],
-    python_requires='>=3.5, <4',
-    extras_require=extras_require,
-    py_modules=['<MODULE_NAME>'],
+    description='',
+    url='https://github.com/ethereum/deposit_contract',
+    packages=find_packages(
+        exclude=[
+            "tests",
+            "tests.*",
+        ]
+    ),
+    python_requires='==3.6.*',
+    extras_require=deps,
+    py_modules=['deposit_contract'],
     license="MIT",
+    setup_requires=['setuptools-markdown'],
+    long_description_markdown_filename='README.md',
+    include_package_data=True,
     zip_safe=False,
-    keywords='ethereum',
-    packages=find_packages(exclude=["tests", "tests.*"]),
     classifiers=[
-        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: Implementation :: PyPy',
     ],
 )
