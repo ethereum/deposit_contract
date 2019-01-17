@@ -1,7 +1,7 @@
-<PROJECT_NAME>
+Eth 2.0 Deposit Contract
 ==============================
 
-<SHORT_DESCRIPTION>
+PoW chain deposit contract in Eth 2.0
 
 Contents
 --------
@@ -9,7 +9,7 @@ Contents
 .. toctree::
     :maxdepth: 3
 
-    <MODULE_NAME>
+    deposit_contract
     releases
 
 

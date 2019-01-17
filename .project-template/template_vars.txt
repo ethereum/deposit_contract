@@ -1,6 +1,6 @@
-<MODULE_NAME>
-<PYPI_NAME>
-<REPO_NAME>
-<RTD_NAME>
-<PROJECT_NAME>
-<SHORT_DESCRIPTION>
+deposit_contract
+deposit_contract
+deposit_contract
+deposit_contract
+Eth 2.0 Deposit Contract
+PoW chain deposit contract in Eth 2.0
