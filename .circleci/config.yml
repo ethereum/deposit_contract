@@ -43,10 +43,17 @@ jobs:
       - image: circleci/python:3.6
         environment:
           TOXENV: py36-core
+  py36-contract:
+    <<: *common
+    docker:
+      - image: circleci/python:3.6
+        environment:
+          TOXENV: py36-contract
 workflows:
   version: 2
   test:
     jobs:
       - doctest
       - lint
-      - pypy3-core
+      - py36-contract
+      - py36-core

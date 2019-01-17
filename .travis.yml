@@ -3,8 +3,18 @@ language: python
 dist: trusty
 matrix:
   include:
+    # lint
+    - python: "3.6"
+      env: TOX_POSARGS="-e lint"
+    # doctest
+    - python: "3.6"
+      env: TOX_POSARGS="-e doctest"
+    # contract
     - python: "3.6"
       env: TOX_POSARGS="-e py36-core"
+    # contract
+    - python: "3.6"
+      env: TOX_POSARGS="-e py36-contract"
 cache:
   - pip: true
 install:
