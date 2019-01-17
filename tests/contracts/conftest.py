@@ -1,16 +1,23 @@
 import os
+from random import (
+    randint,
+)
 import re
-from random import randint
+
 import pytest
+
 import eth_tester
 from eth_tester import (
     EthereumTester,
-    PyEVMBackend
+    PyEVMBackend,
 )
-from web3.providers.eth_tester import EthereumTesterProvider
+from vyper import (
+    compiler,
+)
 from web3 import Web3
-from vyper import compiler
-
+from web3.providers.eth_tester import (
+    EthereumTesterProvider,
+)
 
 # Constants
 MIN_DEPOSIT = 1  # ETH
