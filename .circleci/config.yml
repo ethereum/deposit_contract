@@ -53,7 +53,7 @@ workflows:
   version: 2
   test:
     jobs:
-      - doctest
       - lint
-      - py36-contract
+      - doctest
       - py36-core
+      - py36-contract
