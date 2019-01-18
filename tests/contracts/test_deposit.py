@@ -1,15 +1,17 @@
-from random import randint
+from random import (
+    randint,
+)
 
 import pytest
 
+from eth_hash.auto import (
+    keccak as hash,
+)
 import eth_utils
-
-from eth_hash.auto import keccak as hash
-
 from tests.contracts.conftest import (
+    DEPOSIT_CONTRACT_TREE_DEPTH,
     MAX_DEPOSIT,
     MIN_DEPOSIT,
-    DEPOSIT_CONTRACT_TREE_DEPTH,
     TWO_TO_POWER_OF_TREE_DEPTH,
 )
 
@@ -23,7 +25,7 @@ def compute_merkle_root(leaf_nodes):
         if len(child_nodes) % 2 == 1:
             child_nodes.append(empty_node)
         for j in range(0, len(child_nodes), 2):
-            parent_nodes.append(hash(child_nodes[j] + child_nodes[j+1]))
+            parent_nodes.append(hash(child_nodes[j] + child_nodes[j + 1]))
         child_nodes = parent_nodes
     return child_nodes[0]
 
@@ -122,7 +124,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
         fromBlock='latest',
     )
 
-    index_not_full_deposit = randint(0, t-1)
+    index_not_full_deposit = randint(0, t - 1)
     for i in range(t):
         if i == index_not_full_deposit:
             # Deposit with value below MAX_DEPOSIT

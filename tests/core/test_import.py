@@ -1,4 +1,4 @@
 
 
 def test_import():
-    import <MODULE_NAME>  # noqa: F401
+    import deposit_contract  # noqa: F401

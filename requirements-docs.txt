@@ -1,1 +1,1 @@
-<PYPI_NAME>[doc]
+deposit_contract[doc]

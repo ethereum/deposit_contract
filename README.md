@@ -1,25 +1,17 @@
-# <PROJECT_NAME>
+# Deposit Contract in Eth 2.0
 
-[![Join the chat at https://gitter.im/ethereum/<REPO_NAME>](https://badges.gitter.im/ethereum/<REPO_NAME>.svg)](https://gitter.im/ethereum/<REPO_NAME>?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://circleci.com/gh/ethereum/<REPO_NAME>.svg?style=shield)](https://circleci.com/gh/ethereum/<REPO_NAME>)
-[![PyPI version](https://badge.fury.io/py/<PYPI_NAME>.svg)](https://badge.fury.io/py/<PYPI_NAME>)
-[![Python versions](https://img.shields.io/pypi/pyversions/<PYPI_NAME>.svg)](https://pypi.python.org/pypi/<PYPI_NAME>)
-[![Docs build](https://readthedocs.org/projects/<RTD_NAME>/badge/?version=latest)](http://<RTD_NAME>.readthedocs.io/en/latest/?badge=latest)
+[![Join the chat at https://gitter.im/ethereum/deposit_contract](https://badges.gitter.im/ethereum/deposit_contract.svg)](https://gitter.im/ethereum/deposit_contract?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://circleci.com/gh/ethereum/deposit_contract.svg?style=shield)](https://circleci.com/gh/ethereum/deposit_contract)
+[![PyPI version](https://badge.fury.io/py/deposit_contract.svg)](https://badge.fury.io/py/deposit_contract)
+[![Python versions](https://img.shields.io/pypi/pyversions/deposit_contract.svg)](https://pypi.python.org/pypi/deposit_contract)
+[![Docs build](https://readthedocs.org/projects/deposit_contract/badge/?version=latest)](http://deposit_contract.readthedocs.io/en/latest/?badge=latest)
    
 
-<SHORT_DESCRIPTION>
-
-Read more in the [documentation on ReadTheDocs](https://<RTD_NAME>.readthedocs.io/). [View the change log](https://<RTD_NAME>.readthedocs.io/en/latest/releases.html).
-
-## Quickstart
-
-```sh
-pip install <PYPI_NAME>
-```
+Read more in the [eth2.0-spec repo](https://github.com/ethereum/eth2.0-specs/blob/master/specs/core/0_beacon-chain.md#ethereum-10-deposit-contract).
 
 ## Developer Setup
 
-If you would like to hack on <REPO_NAME>, please check out the
+If you would like to hack on deposit_contract, please check out the
 [Ethereum Development Tactical Manual](https://github.com/pipermerriam/ethereum-dev-tactical-manual)
 for information on how we do:
 
@@ -33,8 +25,8 @@ for information on how we do:
 You can set up your dev environment with:
 
 ```sh
-git clone git@github.com:ethereum/<REPO_NAME>.git
-cd <REPO_NAME>
+git clone git@github.com:ethereum/deposit_contract.git
+cd deposit_contract
 virtualenv -p python3 venv
 . venv/bin/activate
 pip install -e .[dev]
@@ -48,7 +40,7 @@ Show flake8 errors on file change:
 
 ```sh
 # Test flake8
-when-changed -v -s -r -1 <MODULE_NAME>/ tests/ -c "clear; flake8 <MODULE_NAME> tests && echo 'flake8 success' || echo 'error'"
+when-changed -v -s -r -1 deposit_contract/ tests/ -c "clear; flake8 deposit_contract tests && echo 'flake8 success' || echo 'error'"
 ```
 
 Run multi-process tests in one command, but without color:
@@ -64,7 +56,7 @@ Run in one thread, with color and desktop notifications:
 
 ```sh
 cd venv
-ptw --onfail "notify-send -t 5000 'Test failure ⚠⚠⚠⚠⚠' 'python 3 test on <REPO_NAME> failed'" ../tests ../<MODULE_NAME>
+ptw --onfail "notify-send -t 5000 'Test failure ⚠⚠⚠⚠⚠' 'python 3 test on deposit_contract failed'" ../tests ../deposit_contract
 ```
 
 ### Release setup

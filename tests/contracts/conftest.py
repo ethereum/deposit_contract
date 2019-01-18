@@ -1,39 +1,32 @@
-import os
+from random import (
+    randint,
+)
 import re
-from random import randint
+
 import pytest
+
+from deposit_contract.contracts.utils import (
+    get_deposit_contract_code,
+    get_deposit_contract_json,
+)
 import eth_tester
 from eth_tester import (
     EthereumTester,
-    PyEVMBackend
+    PyEVMBackend,
 )
-from web3.providers.eth_tester import EthereumTesterProvider
+from vyper import (
+    compiler,
+)
 from web3 import Web3
-from vyper import compiler
-
+from web3.providers.eth_tester import (
+    EthereumTesterProvider,
+)
 
 # Constants
 MIN_DEPOSIT = 1  # ETH
 MAX_DEPOSIT = 32  # ETH
 DEPOSIT_CONTRACT_TREE_DEPTH = 32
 TWO_TO_POWER_OF_TREE_DEPTH = 4294967296  # 2**32
-
-
-def get_dirs(path):
-    own_dir = os.path.dirname(os.path.realpath(__file__))
-    abs_contract_path = os.path.realpath(
-        os.path.join(own_dir, '..', '..', 'contracts'))
-    sub_dirs = [x[0] for x in os.walk(abs_contract_path)]
-    extra_args = ' '.join(['{}={}'.format(d.split('/')[-1], d)
-                           for d in sub_dirs])
-    path = '{}/{}'.format(abs_contract_path, path)
-    return path, extra_args
-
-
-@pytest.fixture
-def registration_code():
-    with open(get_dirs('validator_registration.v.py')[0]) as f:
-        return f.read()
 
 
 @pytest.fixture
@@ -53,9 +46,9 @@ def w3(tester):
 
 
 @pytest.fixture
-def registration_contract(w3, tester, registration_code):
-    contract_bytecode = compiler.compile_code(registration_code)['bytecode']
-    contract_abi = compiler.mk_full_signature(registration_code)
+def registration_contract(w3, tester):
+    contract_bytecode = get_deposit_contract_json()['bytecode']
+    contract_abi = get_deposit_contract_json()['abi']
     registration = w3.eth.contract(
         abi=contract_abi,
         bytecode=contract_bytecode)
@@ -78,9 +71,9 @@ def modified_registration_contract(
         request,
         w3,
         tester,
-        registration_code,
         chain_start_full_deposit_thresholds):
     # Set CHAIN_START_FULL_DEPOSIT_THRESHOLD to different threshold t
+    registration_code = get_deposit_contract_code()
     t = str(chain_start_full_deposit_thresholds[request.param])
     modified_registration_code = re.sub(
         r'CHAIN_START_FULL_DEPOSIT_THRESHOLD: constant\(uint256\) = [0-9]+',
