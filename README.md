@@ -1,4 +1,4 @@
-# Eth 2.0 Deposit Contract
+# Deposit Contract in Eth 2.0
 
 [![Join the chat at https://gitter.im/ethereum/deposit_contract](https://badges.gitter.im/ethereum/deposit_contract.svg)](https://gitter.im/ethereum/deposit_contract?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://circleci.com/gh/ethereum/deposit_contract.svg?style=shield)](https://circleci.com/gh/ethereum/deposit_contract)
@@ -7,15 +7,7 @@
 [![Docs build](https://readthedocs.org/projects/deposit_contract/badge/?version=latest)](http://deposit_contract.readthedocs.io/en/latest/?badge=latest)
    
 
-PoW chain deposit contract in Eth 2.0
-
-Read more in the [documentation on ReadTheDocs](https://deposit_contract.readthedocs.io/). [View the change log](https://deposit_contract.readthedocs.io/en/latest/releases.html).
-
-## Quickstart
-
-```sh
-pip install deposit_contract
-```
+Read more in the [eth2.0-spec repo](https://github.com/ethereum/eth2.0-specs/blob/master/specs/core/0_beacon-chain.md#ethereum-10-deposit-contract).
 
 ## Developer Setup
 
