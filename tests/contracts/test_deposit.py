@@ -41,22 +41,22 @@ def verify_merkle_branch(leaf, branch, depth, index, root):
 
 
 @pytest.mark.parametrize(
-    'success,amount_deposit',
+    'success,deposit_amount',
     [
-        (True, MAX_DEPOSIT_AMOUNT * eth_utils.denoms.gwei),
-        (True, MIN_DEPOSIT_AMOUNT * eth_utils.denoms.gwei),
-        (False, MIN_DEPOSIT_AMOUNT * eth_utils.denoms.gwei - 1),
-        (False, MAX_DEPOSIT_AMOUNT * eth_utils.denoms.gwei + 1)
+        (True, MAX_DEPOSIT_AMOUNT),
+        (True, MIN_DEPOSIT_AMOUNT),
+        (False, MIN_DEPOSIT_AMOUNT - 1),
+        (False, MAX_DEPOSIT_AMOUNT + 1)
     ]
 )
-def test_deposit_amount(registration_contract, w3, success, amount_deposit, assert_tx_failed):
+def test_deposit_amount(registration_contract, w3, success, deposit_amount, assert_tx_failed):
 
     call = registration_contract.functions.deposit(b'\x10' * 100)
     if success:
-        assert call.transact({"value": amount_deposit})
+        assert call.transact({"value": deposit_amount * eth_utils.denoms.gwei})
     else:
         assert_tx_failed(
-            lambda: call.transact({"value": amount_deposit})
+            lambda: call.transact({"value": deposit_amount * eth_utils.denoms.gwei})
         )
 
 
@@ -118,7 +118,7 @@ def test_receipt_tree(registration_contract, w3, assert_tx_failed):
 def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
     t = getattr(modified_registration_contract, 'chain_start_full_deposit_threshold')
     # CHAIN_START_FULL_DEPOSIT_THRESHOLD is set to t
-    min_deposit_amount = MIN_DEPOSIT_AMOUNT * eth_utils.denoms.gwei  # in ETH
+    min_deposit_amount = MIN_DEPOSIT_AMOUNT * eth_utils.denoms.gwei # in wei
     max_deposit_amount = MAX_DEPOSIT_AMOUNT * eth_utils.denoms.gwei
     log_filter = modified_registration_contract.events.ChainStart.createFilter(
         fromBlock='latest',
