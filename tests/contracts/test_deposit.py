@@ -118,7 +118,7 @@ def test_receipt_tree(registration_contract, w3, assert_tx_failed):
 def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
     t = getattr(modified_registration_contract, 'chain_start_full_deposit_threshold')
     # CHAIN_START_FULL_DEPOSIT_THRESHOLD is set to t
-    min_deposit_amount = MIN_DEPOSIT_AMOUNT * eth_utils.denoms.gwei # in wei
+    min_deposit_amount = MIN_DEPOSIT_AMOUNT * eth_utils.denoms.gwei  # in wei
     max_deposit_amount = MAX_DEPOSIT_AMOUNT * eth_utils.denoms.gwei
     log_filter = modified_registration_contract.events.ChainStart.createFilter(
         fromBlock='latest',
