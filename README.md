@@ -11,7 +11,7 @@ Read more in the [eth2.0-spec repo](https://github.com/ethereum/eth2.0-specs/blo
 
 ## Developer Setup
 
-If you would like to hack on deposit_contract, please check out the
+If you would like to hack on deposit contract tests, please check out the
 [Ethereum Development Tactical Manual](https://github.com/pipermerriam/ethereum-dev-tactical-manual)
 for information on how we do:
 
@@ -31,6 +31,18 @@ virtualenv -p python3 venv
 . venv/bin/activate
 pip install -e .[dev]
 ```
+
+### Vyper contract development
+
+Please check out [Vyper document](https://vyper.readthedocs.io).
+
+### Compile the deposit contract to bytecode
+
+```sh
+python tool/compile_deposit_contract.py deposit_contract/contracts/validator_registration.v.py
+```
+
+You will get the ABI and bytecode json file in `deposit_contract/contracts/validator_registration.json`.
 
 ### Testing Setup
 

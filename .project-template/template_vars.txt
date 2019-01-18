@@ -1,6 +1,0 @@
-deposit_contract
-deposit_contract
-deposit_contract
-deposit_contract
-Eth 2.0 Deposit Contract
-PoW chain deposit contract in Eth 2.0
