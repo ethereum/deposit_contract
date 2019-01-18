@@ -1,16 +1,14 @@
-import os
 from random import (
     randint,
 )
 import re
-
-import pytest
 
 import eth_tester
 from eth_tester import (
     EthereumTester,
     PyEVMBackend,
 )
+import pytest
 from vyper import (
     compiler,
 )

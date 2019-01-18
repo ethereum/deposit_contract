@@ -2,12 +2,11 @@ from random import (
     randint,
 )
 
-import pytest
-
 from eth_hash.auto import (
     keccak as hash,
 )
 import eth_utils
+import pytest
 from tests.contracts.conftest import (
     DEPOSIT_CONTRACT_TREE_DEPTH,
     MAX_DEPOSIT,
