@@ -3,23 +3,23 @@ from random import (
 )
 import re
 
+import pytest
+
+from deposit_contract.contracts.utils import (
+    get_deposit_contract_code,
+    get_deposit_contract_json,
+)
 import eth_tester
 from eth_tester import (
     EthereumTester,
     PyEVMBackend,
 )
-import pytest
 from vyper import (
     compiler,
 )
 from web3 import Web3
 from web3.providers.eth_tester import (
     EthereumTesterProvider,
-)
-
-from deposit_contract.contracts.utils import (
-    get_deposit_contract_code,
-    get_deposit_contract_json,
 )
 
 # Constants
