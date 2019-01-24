@@ -10,8 +10,16 @@ Deposit: event({previous_deposit_root: bytes32, data: bytes[2064], merkle_tree_i
 ChainStart: event({deposit_root: bytes32, time: bytes[8]})
 
 deposit_tree: map(uint256, bytes32)
+zerohashes: bytes32[32]
+branch: bytes32[32]
 deposit_count: uint256
 full_deposit_count: uint256
+
+@public
+def __init__():
+    for i in range(31):
+        self.zerohashes[i+1] = sha3(concat(self.zerohashes[i], self.zerohashes[i]))
+        self.branch[i+1] = self.zerohashes[i+1]
 
 @payable
 @public
