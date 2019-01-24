@@ -59,10 +59,10 @@ def deposit(deposit_input: bytes[2048]):
             value = sha3(concat(self.branch[j], value))
     self.branch[i] = value
 
+    self.deposit_count += 1
     root: bytes32 = self.get_deposit_root()
     log.Deposit(root, deposit_data, merkle_tree_index, self.branch)
 
-    self.deposit_count += 1
     if msg.value == as_wei_value(MAX_DEPOSIT_AMOUNT, "gwei"):
         self.full_deposit_count += 1
         if self.full_deposit_count == CHAIN_START_FULL_DEPOSIT_THRESHOLD:
