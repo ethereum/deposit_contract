@@ -27,6 +27,7 @@ def compute_merkle_root(leaf_nodes):
         for j in range(0, len(child_nodes), 2):
             parent_nodes.append(hash(child_nodes[j] + child_nodes[j + 1]))
         child_nodes = parent_nodes
+        empty_node = hash(empty_node + empty_node)
     return child_nodes[0]
 
 
