@@ -12,7 +12,6 @@ from tests.contracts.conftest import (
     DEPOSIT_CONTRACT_TREE_DEPTH,
     MAX_DEPOSIT_AMOUNT,
     MIN_DEPOSIT_AMOUNT,
-    TWO_TO_POWER_OF_TREE_DEPTH,
 )
 
 
@@ -69,17 +68,16 @@ def test_deposit_log(registration_contract, a0, w3):
 
         amount_bytes8 = deposit_amount[i].to_bytes(8, 'big')
         timestamp_bytes8 = int(w3.eth.getBlock(w3.eth.blockNumber)['timestamp']).to_bytes(8, 'big')
-        if i == 0:
-            assert log['previous_deposit_root'] == b'\x00' * 32
-        else:
-            assert log['previous_deposit_root'] != b'\x00' * 32
         assert log['data'] == amount_bytes8 + timestamp_bytes8 + deposit_input
-        assert log['merkle_tree_index'] == (i + TWO_TO_POWER_OF_TREE_DEPTH).to_bytes(8, 'big')
+        assert log['merkle_tree_index'] == i.to_bytes(8, 'big')
 
 
 def test_deposit_tree(registration_contract, w3, assert_tx_failed):
-    deposit_amount = [randint(MIN_DEPOSIT_AMOUNT, MAX_DEPOSIT_AMOUNT) for _ in range(10)]
+    log_filter = registration_contract.events.Deposit.createFilter(
+        fromBlock='latest',
+    )
 
+    deposit_amount = [randint(MIN_DEPOSIT_AMOUNT, MAX_DEPOSIT_AMOUNT) for _ in range(10)]
     leaf_nodes = []
     for i in range(0, 10):
         deposit_input = i.to_bytes(1, 'big') * 100
@@ -89,12 +87,16 @@ def test_deposit_tree(registration_contract, w3, assert_tx_failed):
         receipt = w3.eth.getTransactionReceipt(tx_hash)
         print("deposit transaction consumes %d gas" % receipt['gasUsed'])
 
+        logs = log_filter.get_new_entries()
+        assert len(logs) == 1
+        log = logs[0]['args']
+
         timestamp_bytes8 = int(w3.eth.getBlock(w3.eth.blockNumber)['timestamp']).to_bytes(8, 'big')
         amount_bytes8 = deposit_amount[i].to_bytes(8, 'big')
         data = amount_bytes8 + timestamp_bytes8 + deposit_input
         leaf_nodes.append(w3.sha3(data))
         root = compute_merkle_root(leaf_nodes)
-        assert registration_contract.functions.get_deposit_root().call() == root
+        assert log['previous_deposit_root'] == root
 
 
 def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
