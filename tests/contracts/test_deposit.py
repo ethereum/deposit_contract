@@ -30,16 +30,6 @@ def compute_merkle_root(leaf_nodes):
     return child_nodes[0]
 
 
-def verify_merkle_branch(leaf, branch, depth, index, root):
-    value = leaf
-    for i in range(depth):
-        if index // (2**i) % 2:
-            value = hash(branch[i] + value)
-        else:
-            value = hash(value + branch[i])
-    return value == root
-
-
 @pytest.mark.parametrize(
     'success,deposit_amount',
     [
@@ -86,7 +76,7 @@ def test_deposit_log(registration_contract, a0, w3):
         assert log['merkle_tree_index'] == (i + TWO_TO_POWER_OF_TREE_DEPTH).to_bytes(8, 'big')
 
 
-def test_receipt_tree(registration_contract, w3, assert_tx_failed):
+def test_deposit_tree(registration_contract, w3, assert_tx_failed):
     deposit_amount = [randint(MIN_DEPOSIT_AMOUNT, MAX_DEPOSIT_AMOUNT) for _ in range(10)]
 
     leaf_nodes = []
@@ -104,15 +94,6 @@ def test_receipt_tree(registration_contract, w3, assert_tx_failed):
         leaf_nodes.append(w3.sha3(data))
         root = compute_merkle_root(leaf_nodes)
         assert registration_contract.functions.get_deposit_root().call() == root
-        index = randint(0, i)
-        branch = registration_contract.functions.get_branch(index).call()
-        assert verify_merkle_branch(
-            leaf_nodes[index],
-            branch,
-            DEPOSIT_CONTRACT_TREE_DEPTH,
-            index,
-            root
-        )
 
 
 def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
