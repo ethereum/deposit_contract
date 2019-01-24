@@ -59,7 +59,8 @@ def deposit(deposit_input: bytes[2048]):
             value = sha3(concat(self.branch[j], value))
     self.branch[i] = value
 
-    log.Deposit(self.get_deposit_root(), deposit_data, merkle_tree_index, self.branch)
+    root: bytes32 = self.get_deposit_root()
+    log.Deposit(root, deposit_data, merkle_tree_index, self.branch)
 
     self.deposit_count += 1
     if msg.value == as_wei_value(MAX_DEPOSIT_AMOUNT, "gwei"):
@@ -67,4 +68,4 @@ def deposit(deposit_input: bytes[2048]):
         if self.full_deposit_count == CHAIN_START_FULL_DEPOSIT_THRESHOLD:
             timestamp_day_boundary: uint256 = as_unitless_number(block.timestamp) - as_unitless_number(block.timestamp) % SECONDS_PER_DAY + SECONDS_PER_DAY
             chainstart_time: bytes[8] = slice(concat("", convert(timestamp_day_boundary, bytes32)), start=24, len=8)
-            log.ChainStart(self.get_deposit_root(), chainstart_time)
+            log.ChainStart(root, chainstart_time)
