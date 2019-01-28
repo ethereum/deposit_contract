@@ -41,7 +41,7 @@ def compute_merkle_root(leaf_nodes):
 )
 def test_deposit_amount(registration_contract, w3, success, deposit_amount, assert_tx_failed):
 
-    call = registration_contract.functions.deposit(b'\x10' * 100)
+    call = registration_contract.functions.deposit(b'\x10' * 512)
     if success:
         assert call.transact({"value": deposit_amount * eth_utils.denoms.gwei})
     else:
@@ -57,7 +57,7 @@ def test_deposit_log(registration_contract, a0, w3):
 
     deposit_amount = [randint(MIN_DEPOSIT_AMOUNT, MAX_DEPOSIT_AMOUNT) for _ in range(3)]
     for i in range(3):
-        deposit_input = i.to_bytes(1, 'big') * 100
+        deposit_input = (i + 1).to_bytes(1, 'big') * 512
         registration_contract.functions.deposit(
             deposit_input,
         ).transact({"value": deposit_amount[i] * eth_utils.denoms.gwei})
@@ -80,7 +80,7 @@ def test_deposit_tree(registration_contract, w3, assert_tx_failed):
     deposit_amount = [randint(MIN_DEPOSIT_AMOUNT, MAX_DEPOSIT_AMOUNT) for _ in range(10)]
     leaf_nodes = []
     for i in range(0, 10):
-        deposit_input = i.to_bytes(1, 'big') * 100
+        deposit_input = (i + 1).to_bytes(1, 'big') * 512
         tx_hash = registration_contract.functions.deposit(
             deposit_input,
         ).transact({"value": deposit_amount[i] * eth_utils.denoms.gwei})
@@ -112,7 +112,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
     for i in range(t):
         if i == index_not_full_deposit:
             # Deposit with value below MAX_DEPOSIT_AMOUNT
-            deposit_input = b'\x01' * 100
+            deposit_input = b'\x01' * 512
             modified_registration_contract.functions.deposit(
                 deposit_input,
             ).transact({"value": min_deposit_amount})
@@ -121,7 +121,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
             assert len(logs) == 0
         else:
             # Deposit with value MAX_DEPOSIT_AMOUNT
-            deposit_input = i.to_bytes(1, 'big') * 100
+            deposit_input = i.to_bytes(1, 'big') * 512
             modified_registration_contract.functions.deposit(
                 deposit_input,
             ).transact({"value": max_deposit_amount})
@@ -130,7 +130,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
             assert len(logs) == 0
 
     # Make 1 more deposit with value MAX_DEPOSIT_AMOUNT to trigger ChainStart event
-    deposit_input = b'\x06' * 100
+    deposit_input = b'\x06' * 512
     modified_registration_contract.functions.deposit(
         deposit_input,
     ).transact({"value": max_deposit_amount})
@@ -143,7 +143,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
     assert int.from_bytes(log['time'], byteorder='big') == timestamp_day_boundary
 
     # Make 1 deposit with value MAX_DEPOSIT_AMOUNT and check that ChainStart event is not triggered
-    deposit_input = b'\x07' * 100
+    deposit_input = b'\x07' * 512
     modified_registration_contract.functions.deposit(
         deposit_input,
     ).transact({"value": max_deposit_amount})
