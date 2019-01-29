@@ -96,7 +96,7 @@ def test_deposit_tree(registration_contract, w3, assert_tx_failed):
         data = amount_bytes8 + timestamp_bytes8 + deposit_input
         leaf_nodes.append(w3.sha3(data))
         root = compute_merkle_root(leaf_nodes)
-        assert log['previous_deposit_root'] == root
+        assert log['deposit_root'] == root
 
 
 def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
