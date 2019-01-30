@@ -141,6 +141,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
     log = logs[0]['args']
     assert log['deposit_root'] == modified_registration_contract.functions.get_deposit_root().call()
     assert int.from_bytes(log['time'], byteorder='big') == timestamp_day_boundary
+    assert modified_registration_contract.functions.chainStarted().call() == True
 
     # Make 1 deposit with value MAX_DEPOSIT_AMOUNT and check that ChainStart event is not triggered
     deposit_input = b'\x07' * 512

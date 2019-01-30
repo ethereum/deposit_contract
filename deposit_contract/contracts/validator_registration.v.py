@@ -13,6 +13,7 @@ zerohashes: bytes32[32]
 branch: bytes32[32]
 deposit_count: uint256
 full_deposit_count: uint256
+chainStarted: public(bool)
 
 @public
 def __init__():
@@ -60,12 +61,13 @@ def deposit(deposit_input: bytes[512]):
     self.branch[i] = value
 
     self.deposit_count += 1
-    root: bytes32 = self.get_deposit_root()
-    log.Deposit(root, deposit_data, merkle_tree_index, self.branch)
+    new_deposit_root: bytes32 = self.get_deposit_root()
+    log.Deposit(new_deposit_root, deposit_data, merkle_tree_index, self.branch)
 
     if msg.value == as_wei_value(MAX_DEPOSIT_AMOUNT, "gwei"):
         self.full_deposit_count += 1
         if self.full_deposit_count == CHAIN_START_FULL_DEPOSIT_THRESHOLD:
             timestamp_day_boundary: uint256 = as_unitless_number(block.timestamp) - as_unitless_number(block.timestamp) % SECONDS_PER_DAY + SECONDS_PER_DAY
             chainstart_time: bytes[8] = slice(concat("", convert(timestamp_day_boundary, bytes32)), start=24, len=8)
-            log.ChainStart(root, chainstart_time)
+            log.ChainStart(new_deposit_root, chainstart_time)
+            self.chainStarted = True
