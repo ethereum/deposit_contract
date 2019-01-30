@@ -12,7 +12,6 @@ from tests.contracts.conftest import (
     DEPOSIT_CONTRACT_TREE_DEPTH,
     MAX_DEPOSIT_AMOUNT,
     MIN_DEPOSIT_AMOUNT,
-    TWO_TO_POWER_OF_TREE_DEPTH,
 )
 
 
@@ -27,17 +26,8 @@ def compute_merkle_root(leaf_nodes):
         for j in range(0, len(child_nodes), 2):
             parent_nodes.append(hash(child_nodes[j] + child_nodes[j + 1]))
         child_nodes = parent_nodes
+        empty_node = hash(empty_node + empty_node)
     return child_nodes[0]
-
-
-def verify_merkle_branch(leaf, branch, depth, index, root):
-    value = leaf
-    for i in range(depth):
-        if index // (2**i) % 2:
-            value = hash(branch[i] + value)
-        else:
-            value = hash(value + branch[i])
-    return value == root
 
 
 @pytest.mark.parametrize(
@@ -51,7 +41,7 @@ def verify_merkle_branch(leaf, branch, depth, index, root):
 )
 def test_deposit_amount(registration_contract, w3, success, deposit_amount, assert_tx_failed):
 
-    call = registration_contract.functions.deposit(b'\x10' * 100)
+    call = registration_contract.functions.deposit(b'\x10' * 512)
     if success:
         assert call.transact({"value": deposit_amount * eth_utils.denoms.gwei})
     else:
@@ -67,7 +57,7 @@ def test_deposit_log(registration_contract, a0, w3):
 
     deposit_amount = [randint(MIN_DEPOSIT_AMOUNT, MAX_DEPOSIT_AMOUNT) for _ in range(3)]
     for i in range(3):
-        deposit_input = i.to_bytes(1, 'big') * 100
+        deposit_input = (i + 1).to_bytes(1, 'big') * 512
         registration_contract.functions.deposit(
             deposit_input,
         ).transact({"value": deposit_amount[i] * eth_utils.denoms.gwei})
@@ -78,41 +68,35 @@ def test_deposit_log(registration_contract, a0, w3):
 
         amount_bytes8 = deposit_amount[i].to_bytes(8, 'big')
         timestamp_bytes8 = int(w3.eth.getBlock(w3.eth.blockNumber)['timestamp']).to_bytes(8, 'big')
-        if i == 0:
-            assert log['previous_deposit_root'] == b'\x00' * 32
-        else:
-            assert log['previous_deposit_root'] != b'\x00' * 32
         assert log['data'] == amount_bytes8 + timestamp_bytes8 + deposit_input
-        assert log['merkle_tree_index'] == (i + TWO_TO_POWER_OF_TREE_DEPTH).to_bytes(8, 'big')
+        assert log['merkle_tree_index'] == i.to_bytes(8, 'big')
 
 
-def test_receipt_tree(registration_contract, w3, assert_tx_failed):
+def test_deposit_tree(registration_contract, w3, assert_tx_failed):
+    log_filter = registration_contract.events.Deposit.createFilter(
+        fromBlock='latest',
+    )
+
     deposit_amount = [randint(MIN_DEPOSIT_AMOUNT, MAX_DEPOSIT_AMOUNT) for _ in range(10)]
-
     leaf_nodes = []
     for i in range(0, 10):
-        deposit_input = i.to_bytes(1, 'big') * 100
+        deposit_input = (i + 1).to_bytes(1, 'big') * 512
         tx_hash = registration_contract.functions.deposit(
             deposit_input,
         ).transact({"value": deposit_amount[i] * eth_utils.denoms.gwei})
         receipt = w3.eth.getTransactionReceipt(tx_hash)
         print("deposit transaction consumes %d gas" % receipt['gasUsed'])
 
+        logs = log_filter.get_new_entries()
+        assert len(logs) == 1
+        log = logs[0]['args']
+
         timestamp_bytes8 = int(w3.eth.getBlock(w3.eth.blockNumber)['timestamp']).to_bytes(8, 'big')
         amount_bytes8 = deposit_amount[i].to_bytes(8, 'big')
         data = amount_bytes8 + timestamp_bytes8 + deposit_input
         leaf_nodes.append(w3.sha3(data))
         root = compute_merkle_root(leaf_nodes)
-        assert registration_contract.functions.get_deposit_root().call() == root
-        index = randint(0, i)
-        branch = registration_contract.functions.get_branch(index).call()
-        assert verify_merkle_branch(
-            leaf_nodes[index],
-            branch,
-            DEPOSIT_CONTRACT_TREE_DEPTH,
-            index,
-            root
-        )
+        assert log['deposit_root'] == root
 
 
 def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
@@ -128,7 +112,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
     for i in range(t):
         if i == index_not_full_deposit:
             # Deposit with value below MAX_DEPOSIT_AMOUNT
-            deposit_input = b'\x01' * 100
+            deposit_input = b'\x01' * 512
             modified_registration_contract.functions.deposit(
                 deposit_input,
             ).transact({"value": min_deposit_amount})
@@ -137,7 +121,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
             assert len(logs) == 0
         else:
             # Deposit with value MAX_DEPOSIT_AMOUNT
-            deposit_input = i.to_bytes(1, 'big') * 100
+            deposit_input = i.to_bytes(1, 'big') * 512
             modified_registration_contract.functions.deposit(
                 deposit_input,
             ).transact({"value": max_deposit_amount})
@@ -146,7 +130,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
             assert len(logs) == 0
 
     # Make 1 more deposit with value MAX_DEPOSIT_AMOUNT to trigger ChainStart event
-    deposit_input = b'\x06' * 100
+    deposit_input = b'\x06' * 512
     modified_registration_contract.functions.deposit(
         deposit_input,
     ).transact({"value": max_deposit_amount})
@@ -157,9 +141,10 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
     log = logs[0]['args']
     assert log['deposit_root'] == modified_registration_contract.functions.get_deposit_root().call()
     assert int.from_bytes(log['time'], byteorder='big') == timestamp_day_boundary
+    assert modified_registration_contract.functions.chainStarted().call() is True
 
     # Make 1 deposit with value MAX_DEPOSIT_AMOUNT and check that ChainStart event is not triggered
-    deposit_input = b'\x07' * 100
+    deposit_input = b'\x07' * 512
     modified_registration_contract.functions.deposit(
         deposit_input,
     ).transact({"value": max_deposit_amount})
