@@ -31,6 +31,15 @@ def compute_merkle_root(leaf_nodes):
 
 
 @pytest.mark.parametrize(
+    'value',
+    [(0), (10), (55555), (2**64 - 1)]
+)
+def test_to_little_endian_64(registration_contract, value):
+    little_endian_64 = registration_contract.functions.to_little_endian_64(value).call()
+    assert little_endian_64 == (value).to_bytes(8, 'little')
+
+
+@pytest.mark.parametrize(
     'success,deposit_amount',
     [
         (True, MAX_DEPOSIT_AMOUNT),
@@ -57,7 +66,7 @@ def test_deposit_log(registration_contract, a0, w3):
 
     deposit_amount = [randint(MIN_DEPOSIT_AMOUNT, MAX_DEPOSIT_AMOUNT) for _ in range(3)]
     for i in range(3):
-        deposit_input = (i + 1).to_bytes(1, 'big') * 512
+        deposit_input = (i + 1).to_bytes(1, 'little') * 512
         registration_contract.functions.deposit(
             deposit_input,
         ).transact({"value": deposit_amount[i] * eth_utils.denoms.gwei})
@@ -66,10 +75,12 @@ def test_deposit_log(registration_contract, a0, w3):
         assert len(logs) == 1
         log = logs[0]['args']
 
-        amount_bytes8 = deposit_amount[i].to_bytes(8, 'big')
-        timestamp_bytes8 = int(w3.eth.getBlock(w3.eth.blockNumber)['timestamp']).to_bytes(8, 'big')
+        amount_bytes8 = deposit_amount[i].to_bytes(8, 'little')
+        timestamp_bytes8 = int(
+            w3.eth.getBlock(w3.eth.blockNumber)['timestamp']
+        ).to_bytes(8, 'little')
         assert log['data'] == amount_bytes8 + timestamp_bytes8 + deposit_input
-        assert log['merkle_tree_index'] == i.to_bytes(8, 'big')
+        assert log['merkle_tree_index'] == i.to_bytes(8, 'little')
 
 
 def test_deposit_tree(registration_contract, w3, assert_tx_failed):
@@ -91,8 +102,10 @@ def test_deposit_tree(registration_contract, w3, assert_tx_failed):
         assert len(logs) == 1
         log = logs[0]['args']
 
-        timestamp_bytes8 = int(w3.eth.getBlock(w3.eth.blockNumber)['timestamp']).to_bytes(8, 'big')
-        amount_bytes8 = deposit_amount[i].to_bytes(8, 'big')
+        timestamp_bytes8 = int(
+            w3.eth.getBlock(w3.eth.blockNumber)['timestamp']
+        ).to_bytes(8, 'little')
+        amount_bytes8 = deposit_amount[i].to_bytes(8, 'little')
         data = amount_bytes8 + timestamp_bytes8 + deposit_input
         leaf_nodes.append(w3.sha3(data))
         root = compute_merkle_root(leaf_nodes)
@@ -140,7 +153,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
     timestamp_day_boundary = timestamp + (86400 - timestamp % 86400)
     log = logs[0]['args']
     assert log['deposit_root'] == modified_registration_contract.functions.get_deposit_root().call()
-    assert int.from_bytes(log['time'], byteorder='big') == timestamp_day_boundary
+    assert int.from_bytes(log['time'], byteorder='little') == timestamp_day_boundary
     assert modified_registration_contract.functions.chainStarted().call() is True
 
     # Make 1 deposit with value MAX_DEPOSIT_AMOUNT and check that ChainStart event is not triggered
