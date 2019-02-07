@@ -31,12 +31,25 @@ def compute_merkle_root(leaf_nodes):
 
 
 @pytest.mark.parametrize(
-    'value',
-    [(0), (10), (55555), (2**64 - 1)]
+    'value,success',
+    [
+        (0, True),
+        (10, True),
+        (55555, True),
+        (2**64 - 1, True),
+        (2**64, False),
+    ]
 )
-def test_to_little_endian_64(registration_contract, value):
-    little_endian_64 = registration_contract.functions.to_little_endian_64(value).call()
-    assert little_endian_64 == (value).to_bytes(8, 'little')
+def test_to_little_endian_64(registration_contract, value, success, assert_tx_failed):
+    call = registration_contract.functions.to_little_endian_64(value)
+
+    if success:
+        little_endian_64 = call.call()
+        assert little_endian_64 == (value).to_bytes(8, 'little')
+    else:
+        assert_tx_failed(
+            lambda: call.call()
+        )
 
 
 @pytest.mark.parametrize(

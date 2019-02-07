@@ -5,6 +5,7 @@ CHAIN_START_FULL_DEPOSIT_THRESHOLD: constant(uint256) = 16384  # 2**14
 DEPOSIT_CONTRACT_TREE_DEPTH: constant(uint256) = 32
 TWO_TO_POWER_OF_TREE_DEPTH: constant(uint256) = 4294967296  # 2**32
 SECONDS_PER_DAY: constant(uint256) = 86400
+MAX_64_BIT_VALUE: constant(uint256) = 18446744073709551615  # 2**64 - 1
 
 Deposit: event({deposit_root: bytes32, data: bytes[528], merkle_tree_index: bytes[8], branch: bytes32[32]})
 ChainStart: event({deposit_root: bytes32, time: bytes[8]})
@@ -22,7 +23,10 @@ def __init__():
         self.branch[i+1] = self.zerohashes[i+1]
 
 @public
+@constant
 def to_little_endian_64(value: uint256) -> bytes[8]:
+    assert value <= MAX_64_BIT_VALUE
+
     big_endian_64: bytes[8] = slice(concat("", convert(value, bytes32)), start=24, len=8)
 
     # array access for bytes[] not currently supported in vyper so
