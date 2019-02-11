@@ -62,8 +62,8 @@ def get_deposit_root() -> bytes32:
 def deposit(deposit_input: bytes[512]):
     deposit_amount: uint256 = msg.value / as_wei_value(1, "gwei")
     
-    assert msg.value >= deposit_amount
-    assert msg.value <= deposit_amount
+    assert deposit_amount >= MIN_DEPOSIT_AMOUNT
+    assert deposit_amount <= MAX_DEPOSIT_AMOUNT
 
     index: uint256 = self.deposit_count
     deposit_timestamp: uint256 = as_unitless_number(block.timestamp)
