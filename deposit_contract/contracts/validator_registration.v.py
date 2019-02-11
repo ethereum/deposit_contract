@@ -68,7 +68,6 @@ def deposit(deposit_input: bytes[512]):
     index: uint256 = self.deposit_count
     deposit_timestamp: uint256 = as_unitless_number(block.timestamp)
     deposit_data: bytes[528] = concat(self.to_little_endian_64(deposit_amount), self.to_little_endian_64(deposit_timestamp), deposit_input)
-    merkle_tree_index: bytes[8] = self.to_little_endian_64(index)
 
     # add deposit to merkle tree
     i: int128 = 0
@@ -86,12 +85,11 @@ def deposit(deposit_input: bytes[512]):
 
     self.deposit_count += 1
     new_deposit_root: bytes32 = self.get_deposit_root()
-    log.Deposit(new_deposit_root, deposit_data, merkle_tree_index, self.branch)
+    log.Deposit(new_deposit_root, deposit_data, self.to_little_endian_64(index), self.branch)
 
     if deposit_amount == MAX_DEPOSIT_AMOUNT:
         self.full_deposit_count += 1
         if self.full_deposit_count == CHAIN_START_FULL_DEPOSIT_THRESHOLD:
             timestamp_day_boundary: uint256 = as_unitless_number(block.timestamp) - as_unitless_number(block.timestamp) % SECONDS_PER_DAY + SECONDS_PER_DAY
-            chainstart_time: bytes[8] = self.to_little_endian_64(timestamp_day_boundary)
-            log.ChainStart(new_deposit_root, chainstart_time)
+            log.ChainStart(new_deposit_root, self.to_little_endian_64(timestamp_day_boundary))
             self.chainStarted = True
