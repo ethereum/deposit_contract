@@ -2,15 +2,14 @@ MIN_DEPOSIT_AMOUNT: constant(uint256) = 1000000000  # Gwei
 MAX_DEPOSIT_AMOUNT: constant(uint256) = 32000000000  # Gwei
 CHAIN_START_FULL_DEPOSIT_THRESHOLD: constant(uint256) = 16384  # 2**14
 DEPOSIT_TREE_DEPTH: constant(uint256) = 32
-TWO_TO_POWER_OF_TREE_DEPTH: constant(uint256) = 4294967296  # 2**32
 SECONDS_PER_DAY: constant(uint256) = 86400
 MAX_64_BIT_VALUE: constant(uint256) = 18446744073709551615  # 2**64 - 1
 
-Deposit: event({deposit_root: bytes32, data: bytes[528], merkle_tree_index: bytes[8], branch: bytes32[32]})
+Deposit: event({deposit_root: bytes32, data: bytes[528], merkle_tree_index: bytes[8], branch: bytes32[DEPOSIT_TREE_DEPTH]})
 ChainStart: event({deposit_root: bytes32, time: bytes[8]})
 
-zerohashes: bytes32[32]
-branch: bytes32[32]
+zerohashes: bytes32[DEPOSIT_TREE_DEPTH]
+branch: bytes32[DEPOSIT_TREE_DEPTH]
 deposit_count: uint256
 full_deposit_count: uint256
 chainStarted: public(bool)
@@ -49,7 +48,7 @@ def to_little_endian_64(value: uint256) -> bytes[8]:
 def get_deposit_root() -> bytes32:
     root:bytes32 = 0x0000000000000000000000000000000000000000000000000000000000000000
     size:uint256 = self.deposit_count
-    for h in range(32):
+    for h in range(DEPOSIT_TREE_DEPTH):
         if size % 2 == 1:
             root = sha3(concat(self.branch[h], root))
         else:
@@ -72,13 +71,13 @@ def deposit(deposit_input: bytes[512]):
     # add deposit to merkle tree
     i: int128 = 0
     power_of_two: uint256 = 2
-    for _ in range(32):
+    for _ in range(DEPOSIT_TREE_DEPTH):
         if (index+1) % power_of_two != 0:
             break
         i += 1
         power_of_two *= 2
     value:bytes32 = sha3(deposit_data)
-    for j in range(32):
+    for j in range(DEPOSIT_TREE_DEPTH):
         if j < i:
             value = sha3(concat(self.branch[j], value))
     self.branch[i] = value
