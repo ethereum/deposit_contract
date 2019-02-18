@@ -130,7 +130,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
     # CHAIN_START_FULL_DEPOSIT_THRESHOLD is set to t
     min_deposit_amount = MIN_DEPOSIT_AMOUNT * eth_utils.denoms.gwei  # in wei
     max_deposit_amount = MAX_DEPOSIT_AMOUNT * eth_utils.denoms.gwei
-    log_filter = modified_registration_contract.events.ChainStart.createFilter(
+    log_filter = modified_registration_contract.events.Eth2Genesis.createFilter(
         fromBlock='latest',
     )
 
@@ -143,7 +143,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
                 deposit_input,
             ).transact({"value": min_deposit_amount})
             logs = log_filter.get_new_entries()
-            # ChainStart event should not be triggered
+            # Eth2Genesis event should not be triggered
             assert len(logs) == 0
         else:
             # Deposit with value MAX_DEPOSIT_AMOUNT
@@ -152,10 +152,10 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
                 deposit_input,
             ).transact({"value": max_deposit_amount})
             logs = log_filter.get_new_entries()
-            # ChainStart event should not be triggered
+            # Eth2Genesis event should not be triggered
             assert len(logs) == 0
 
-    # Make 1 more deposit with value MAX_DEPOSIT_AMOUNT to trigger ChainStart event
+    # Make 1 more deposit with value MAX_DEPOSIT_AMOUNT to trigger Eth2Genesis event
     deposit_input = b'\x06' * 512
     modified_registration_contract.functions.deposit(
         deposit_input,
@@ -169,7 +169,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
     assert int.from_bytes(log['time'], byteorder='little') == timestamp_day_boundary
     assert modified_registration_contract.functions.chainStarted().call() is True
 
-    # Make 1 deposit with value MAX_DEPOSIT_AMOUNT and check that ChainStart event is not triggered
+    # Make 1 deposit with value MAX_DEPOSIT_AMOUNT and check that Eth2Genesis event is not triggered
     deposit_input = b'\x07' * 512
     modified_registration_contract.functions.deposit(
         deposit_input,
