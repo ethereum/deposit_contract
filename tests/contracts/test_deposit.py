@@ -30,6 +30,19 @@ def compute_merkle_root(leaf_nodes):
     return child_nodes[0]
 
 
+def verify_merkle_branch(index, leaf, proof, expected_root):
+    root = leaf
+    empty_node = b'\x00' * 32
+    for i in range(32):
+        if index % 2 == 1:
+            root = hash(proof[i] + root)
+        else:
+            root = hash(root + empty_node)
+        empty_node = hash(empty_node + empty_node)
+        index = index // 2
+    assert root == expected_root
+
+
 @pytest.mark.parametrize(
     'value,success',
     [
@@ -123,6 +136,7 @@ def test_deposit_tree(registration_contract, w3, assert_tx_failed):
         leaf_nodes.append(w3.sha3(data))
         root = compute_merkle_root(leaf_nodes)
         assert log['deposit_root'] == root
+        verify_merkle_branch(i, w3.sha3(data), log['branch'], log['deposit_root'])
 
 
 def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
