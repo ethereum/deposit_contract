@@ -89,6 +89,6 @@ def deposit(deposit_input: bytes[512]):
     if deposit_amount == MAX_DEPOSIT_AMOUNT:
         self.full_deposit_count += 1
         if self.full_deposit_count == CHAIN_START_FULL_DEPOSIT_THRESHOLD:
-            timestamp_day_boundary: uint256 = as_unitless_number(block.timestamp) - as_unitless_number(block.timestamp) % SECONDS_PER_DAY + SECONDS_PER_DAY
+            timestamp_day_boundary: uint256 = as_unitless_number(block.timestamp) - as_unitless_number(block.timestamp) % SECONDS_PER_DAY + 2*SECONDS_PER_DAY
             log.Eth2Genesis(new_deposit_root, self.to_little_endian_64(timestamp_day_boundary))
             self.chainStarted = True

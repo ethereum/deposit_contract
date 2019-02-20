@@ -163,7 +163,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
     logs = log_filter.get_new_entries()
     assert len(logs) == 1
     timestamp = int(w3.eth.getBlock(w3.eth.blockNumber)['timestamp'])
-    timestamp_day_boundary = timestamp + (86400 - timestamp % 86400)
+    timestamp_day_boundary = timestamp + (86400 - timestamp % 86400) + 86400
     log = logs[0]['args']
     assert log['deposit_root'] == modified_registration_contract.functions.get_deposit_root().call()
     assert int.from_bytes(log['time'], byteorder='little') == timestamp_day_boundary
