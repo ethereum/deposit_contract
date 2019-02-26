@@ -1,13 +1,11 @@
+from hashlib import (
+    sha256,
+)
 from random import (
     randint,
 )
 
 import pytest
-
-# from eth_hash.auto import (
-#     keccak as hash,
-# )
-from hashlib import sha256
 
 import eth_utils
 from tests.contracts.conftest import (
