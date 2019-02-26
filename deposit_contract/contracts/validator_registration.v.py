@@ -67,7 +67,6 @@ def get_deposit_root() -> bytes32:
     size: uint256 = self.deposit_count
     for h in range(DEPOSIT_CONTRACT_TREE_DEPTH):
         if bitwise_and(size, 1) == 1:
-            # root = sha3(concat(self.branch[h], root))
             root = extract32(
                 raw_call(
                     SHA256_ADDRESS,
@@ -79,7 +78,6 @@ def get_deposit_root() -> bytes32:
                 type=bytes32,
             )
         else:
-            # root = sha3(concat(root, self.zerohashes[h]))
             root = extract32(
                 raw_call(
                     SHA256_ADDRESS,
@@ -119,7 +117,6 @@ def deposit(deposit_input: bytes[512]):
         i += 1
         power_of_two *= 2
 
-    # value: bytes32 = sha3(deposit_data)
     value: bytes32 = extract32(
         raw_call(
             SHA256_ADDRESS,
@@ -133,7 +130,6 @@ def deposit(deposit_input: bytes[512]):
 
     for j in range(DEPOSIT_CONTRACT_TREE_DEPTH):
         if j < i:
-            # value = sha3(concat(self.branch[j], value))
             value = extract32(
                 raw_call(
                     SHA256_ADDRESS,
