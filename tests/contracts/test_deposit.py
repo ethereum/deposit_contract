@@ -4,15 +4,21 @@ from random import (
 
 import pytest
 
-from eth_hash.auto import (
-    keccak as hash,
-)
+# from eth_hash.auto import (
+#     keccak as hash,
+# )
+from hashlib import sha256
+
 import eth_utils
 from tests.contracts.conftest import (
     DEPOSIT_CONTRACT_TREE_DEPTH,
     MAX_DEPOSIT_AMOUNT,
     MIN_DEPOSIT_AMOUNT,
 )
+
+
+def hash(data):
+    return sha256(data).digest()
 
 
 def compute_merkle_root(leaf_nodes):
