@@ -14,6 +14,7 @@ deposit_count: uint256
 full_deposit_count: uint256
 chainStarted: public(bool)
 
+
 @public
 def __init__():
     for i in range(DEPOSIT_CONTRACT_TREE_DEPTH - 1):
