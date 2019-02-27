@@ -16,45 +16,41 @@ chainStarted: public(bool)
 
 @public
 def __init__():
-    for i in range(31):
+    for i in range(DEPOSIT_TREE_DEPTH - 1):
         self.zerohashes[i+1] = sha3(concat(self.zerohashes[i], self.zerohashes[i]))
-        self.branch[i+1] = self.zerohashes[i+1]
+        self.branch[i+1] = self.zerohashes[i + 1]
 
-@private
-@constant
-def to_bytes8(value: uint256) -> bytes[8]:
-    return slice(convert(value, bytes32), start=24, len=8)
-    
+
 @public
 @constant
 def to_little_endian_64(value: uint256) -> bytes[8]:
     assert value <= MAX_64_BIT_VALUE
 
-    big_endian_64: bytes[8] = self.to_bytes8(value)
-
     # array access for bytes[] not currently supported in vyper so
     # reversing bytes using bitwise uint256 manipulations
-    x: uint256 = convert(big_endian_64, uint256)
     y: uint256 = 0
+    x: uint256 = value
     for i in range(8):
         y = shift(y, 8)
         y = y + bitwise_and(x, 255)
         x = shift(x, -8)
 
-    return self.to_bytes8(y)
+    return slice(convert(y, bytes32), start=24, len=8)
+
 
 @public
 @constant
 def get_deposit_root() -> bytes32:
-    root:bytes32 = 0x0000000000000000000000000000000000000000000000000000000000000000
-    size:uint256 = self.deposit_count
+    root: bytes32 = 0x0000000000000000000000000000000000000000000000000000000000000000
+    size: uint256 = self.deposit_count
     for h in range(DEPOSIT_TREE_DEPTH):
-        if size % 2 == 1:
+        if bitwise_and(size, 1) == 1:
             root = sha3(concat(self.branch[h], root))
         else:
             root = sha3(concat(root, self.zerohashes[h]))
         size /= 2
     return root
+
 
 @payable
 @public
@@ -66,7 +62,11 @@ def deposit(deposit_input: bytes[512]):
 
     index: uint256 = self.deposit_count
     deposit_timestamp: uint256 = as_unitless_number(block.timestamp)
-    deposit_data: bytes[528] = concat(self.to_little_endian_64(deposit_amount), self.to_little_endian_64(deposit_timestamp), deposit_input)
+    deposit_data: bytes[528] = concat(
+        self.to_little_endian_64(deposit_amount),
+        self.to_little_endian_64(deposit_timestamp),
+        deposit_input,
+    )
 
     # add deposit to merkle tree
     i: int128 = 0
@@ -76,7 +76,7 @@ def deposit(deposit_input: bytes[512]):
             break
         i += 1
         power_of_two *= 2
-    value:bytes32 = sha3(deposit_data)
+    value: bytes32 = sha3(deposit_data)
     for j in range(DEPOSIT_TREE_DEPTH):
         if j < i:
             value = sha3(concat(self.branch[j], value))
@@ -89,6 +89,10 @@ def deposit(deposit_input: bytes[512]):
     if deposit_amount == MAX_DEPOSIT_AMOUNT:
         self.full_deposit_count += 1
         if self.full_deposit_count == CHAIN_START_FULL_DEPOSIT_THRESHOLD:
-            timestamp_day_boundary: uint256 = as_unitless_number(block.timestamp) - as_unitless_number(block.timestamp) % SECONDS_PER_DAY + 2*SECONDS_PER_DAY
+            timestamp_day_boundary: uint256 = (
+                as_unitless_number(block.timestamp) -
+                as_unitless_number(block.timestamp) % SECONDS_PER_DAY +
+                2 * SECONDS_PER_DAY
+            )
             log.Eth2Genesis(new_deposit_root, self.to_little_endian_64(timestamp_day_boundary))
             self.chainStarted = True
