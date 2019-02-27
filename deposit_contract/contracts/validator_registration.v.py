@@ -77,10 +77,13 @@ def deposit(deposit_input: bytes[512]):
             break
         i += 1
         power_of_two *= 2
+
     value: bytes32 = sha3(deposit_data)
     for j in range(DEPOSIT_CONTRACT_TREE_DEPTH):
         if j < i:
             value = sha3(concat(self.branch[j], value))
+        else:
+            break
     self.branch[i] = value
 
     self.deposit_count += 1
