@@ -104,7 +104,7 @@ def test_deposit_tree(registration_contract, w3, assert_tx_failed):
     deposit_amount = [randint(MIN_DEPOSIT_AMOUNT, MAX_DEPOSIT_AMOUNT) for _ in range(10)]
     leaf_nodes = []
     for i in range(0, 10):
-        deposit_input = (i + 1).to_bytes(1, 'big') * 512
+        deposit_input = (i + 1).to_bytes(1, 'little') * 512
         tx_hash = registration_contract.functions.deposit(
             deposit_input,
         ).transact({"value": deposit_amount[i] * eth_utils.denoms.gwei})
@@ -120,7 +120,7 @@ def test_deposit_tree(registration_contract, w3, assert_tx_failed):
         ).to_bytes(8, 'little')
         amount_bytes8 = deposit_amount[i].to_bytes(8, 'little')
         data = amount_bytes8 + timestamp_bytes8 + deposit_input
-        leaf_nodes.append(w3.sha3(data))
+        leaf_nodes.append(hash(data))
         root = compute_merkle_root(leaf_nodes)
         assert log['deposit_root'] == root
 
@@ -147,7 +147,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
             assert len(logs) == 0
         else:
             # Deposit with value MAX_DEPOSIT_AMOUNT
-            deposit_input = i.to_bytes(1, 'big') * 512
+            deposit_input = i.to_bytes(1, 'little') * 512
             modified_registration_contract.functions.deposit(
                 deposit_input,
             ).transact({"value": max_deposit_amount})
