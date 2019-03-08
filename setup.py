@@ -40,7 +40,7 @@ setup(
             "tests.*",
         ]
     ),
-    python_requires='==3.6.*',
+    python_requires='>=3.6.*',
     extras_require=deps,
     py_modules=['deposit_contract'],
     license="MIT",
