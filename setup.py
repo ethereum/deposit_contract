@@ -8,7 +8,7 @@ deps = {
         "tox==3.0.0",
         "eth-tester[py-evm]==0.1.0b29",
         "vyper==0.1.0b8",
-        "web3==4.3.0",
+        "web3==4.8.3",
         "pytest==3.6.1",
     ],
     'lint': [
