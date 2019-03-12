@@ -120,11 +120,9 @@ def test_deposit_tree(registration_contract, w3, assert_tx_failed):
         ).to_bytes(8, 'little')
         amount_bytes8 = deposit_amount[i].to_bytes(8, 'little')
         data = amount_bytes8 + timestamp_bytes8 + deposit_input
-        assert log["data"] == data
-        assert log["merkle_tree_index"] == i.to_bytes(8, 'little')
         leaf_nodes.append(hash(data))
         root = compute_merkle_root(leaf_nodes)
-        assert root == registration_contract.functions.get_deposit_root().call()
+        assert log['deposit_root'] == root
 
 
 def test_chain_start(modified_registration_contract, w3, assert_tx_failed):

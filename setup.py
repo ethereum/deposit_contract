@@ -8,7 +8,7 @@ deps = {
         "tox==3.0.0",
         "eth-tester[py-evm]==0.1.0b29",
         "vyper==0.1.0b8",
-        "web3==4.8.3",
+        "web3==4.3.0",
         "pytest==3.6.1",
     ],
     'lint': [
@@ -40,7 +40,7 @@ setup(
             "tests.*",
         ]
     ),
-    python_requires='>=3.6.*',
+    python_requires='==3.6.*',
     extras_require=deps,
     py_modules=['deposit_contract'],
     license="MIT",
