@@ -6,7 +6,7 @@ SECONDS_PER_DAY: constant(uint256) = 86400
 MAX_64_BIT_VALUE: constant(uint256) = 18446744073709551615  # 2**64 - 1
 
 Deposit: event({data: bytes[528], merkle_tree_index: bytes[8]})
-Eth2Genesis: event({deposit_root: bytes32, time: bytes[8]})
+Eth2Genesis: event({deposit_root: bytes32, deposit_count: bytes[8], time: bytes[8]})
 
 zerohashes: bytes32[DEPOSIT_CONTRACT_TREE_DEPTH]
 branch: bytes32[DEPOSIT_CONTRACT_TREE_DEPTH]
@@ -52,6 +52,10 @@ def get_deposit_root() -> bytes32:
         size /= 2
     return root
 
+@public
+@constant
+def get_deposit_count() -> bytes[8]:
+    return self.to_little_endian_64(self.deposit_count)
 
 @payable
 @public
@@ -98,5 +102,7 @@ def deposit(deposit_input: bytes[512]):
                 as_unitless_number(block.timestamp) % SECONDS_PER_DAY +
                 2 * SECONDS_PER_DAY
             )
-            log.Eth2Genesis(new_deposit_root, self.to_little_endian_64(timestamp_day_boundary))
+            log.Eth2Genesis(new_deposit_root,
+                            self.to_little_endian_64(self.deposit_count),
+                            self.to_little_endian_64(timestamp_day_boundary))
             self.chainStarted = True
