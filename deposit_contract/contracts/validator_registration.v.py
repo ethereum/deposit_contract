@@ -71,19 +71,17 @@ def get_deposit_count() -> bytes[8]:
 
 @payable
 @public
-# `deposit_input` includes 48 bytes `pubkey`, 32 bytes `withdrawal_credentials`
+# `deposit_data` includes:
+# 48 bytes `pubkey`, 32 bytes `withdrawal_credentials`, 8 bytes `amount`
 # and 96 bytes `proof_of_possession`.
-def deposit(deposit_input: bytes[176]):
-    deposit_amount: uint256 = msg.value / as_wei_value(1, "gwei")
+def deposit(deposit_data: bytes[184]):
+    deposit_amount: uint256 = self.from_little_endian_64(slice(deposit_data, start=80, len=8))
 
+    assert deposit_amount == msg.value / as_wei_value(1, "gwei")
     assert deposit_amount >= MIN_DEPOSIT_AMOUNT
     assert deposit_amount <= MAX_DEPOSIT_AMOUNT
 
     index: uint256 = self.deposit_count
-    deposit_data: bytes[184] = concat(
-        self.to_little_endian_64(deposit_amount),
-        deposit_input,
-    )
 
     # add deposit to merkle tree
     i: int128 = 0
