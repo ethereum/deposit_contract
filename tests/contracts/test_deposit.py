@@ -63,7 +63,7 @@ def test_to_little_endian_64(registration_contract, value, success, assert_tx_fa
 )
 def test_deposit_amount(registration_contract, w3, success, deposit_amount, assert_tx_failed):
 
-    call = registration_contract.functions.deposit(b'\x10' * 512)
+    call = registration_contract.functions.deposit(b'\x10' * 176)
     if success:
         assert call.transact({"value": deposit_amount * eth_utils.denoms.gwei})
     else:
@@ -79,7 +79,7 @@ def test_deposit_log(registration_contract, a0, w3):
 
     deposit_amount = [randint(MIN_DEPOSIT_AMOUNT, MAX_DEPOSIT_AMOUNT) for _ in range(3)]
     for i in range(3):
-        deposit_input = (i + 1).to_bytes(1, 'little') * 512
+        deposit_input = (i + 1).to_bytes(1, 'little') * 176
         registration_contract.functions.deposit(
             deposit_input,
         ).transact({"value": deposit_amount[i] * eth_utils.denoms.gwei})
@@ -101,7 +101,7 @@ def test_deposit_tree(registration_contract, w3, assert_tx_failed):
     deposit_amount = [randint(MIN_DEPOSIT_AMOUNT, MAX_DEPOSIT_AMOUNT) for _ in range(10)]
     leaf_nodes = []
     for i in range(0, 10):
-        deposit_input = (i + 1).to_bytes(1, 'little') * 512
+        deposit_input = (i + 1).to_bytes(1, 'little') * 176
         tx_hash = registration_contract.functions.deposit(
             deposit_input,
         ).transact({"value": deposit_amount[i] * eth_utils.denoms.gwei})
@@ -134,7 +134,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
     for i in range(t):
         if i == index_not_full_deposit:
             # Deposit with value below MAX_DEPOSIT_AMOUNT
-            deposit_input = b'\x01' * 512
+            deposit_input = b'\x01' * 176
             modified_registration_contract.functions.deposit(
                 deposit_input,
             ).transact({"value": min_deposit_amount})
@@ -143,7 +143,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
             assert len(logs) == 0
         else:
             # Deposit with value MAX_DEPOSIT_AMOUNT
-            deposit_input = i.to_bytes(1, 'little') * 512
+            deposit_input = i.to_bytes(1, 'little') * 176
             modified_registration_contract.functions.deposit(
                 deposit_input,
             ).transact({"value": max_deposit_amount})
@@ -152,7 +152,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
             assert len(logs) == 0
 
     # Make 1 more deposit with value MAX_DEPOSIT_AMOUNT to trigger Eth2Genesis event
-    deposit_input = b'\x06' * 512
+    deposit_input = b'\x06' * 176
     modified_registration_contract.functions.deposit(
         deposit_input,
     ).transact({"value": max_deposit_amount})
@@ -166,7 +166,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
     assert modified_registration_contract.functions.chainStarted().call() is True
 
     # Make 1 deposit with value MAX_DEPOSIT_AMOUNT and check that Eth2Genesis event is not triggered
-    deposit_input = b'\x07' * 512
+    deposit_input = b'\x07' * 176
     modified_registration_contract.functions.deposit(
         deposit_input,
     ).transact({"value": max_deposit_amount})
