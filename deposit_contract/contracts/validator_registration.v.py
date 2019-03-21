@@ -41,6 +41,18 @@ def to_little_endian_64(value: uint256) -> bytes[8]:
 
 @public
 @constant
+def from_little_endian_64(value: bytes[8]) -> uint256:
+    y: uint256 = 0
+    x: uint256 = convert(value, uint256)
+    for i in range(8):
+        y = y + shift(bitwise_and(x, 255), 8 * (7-i))
+        x = shift(x, -8)
+
+    return y
+
+
+@public
+@constant
 def get_deposit_root() -> bytes32:
     root: bytes32 = 0x0000000000000000000000000000000000000000000000000000000000000000
     size: uint256 = self.deposit_count

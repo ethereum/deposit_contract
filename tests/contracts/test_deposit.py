@@ -52,6 +52,13 @@ def test_to_little_endian_64(registration_contract, value, success, assert_tx_fa
         )
 
 
+def test_from_little_endian_64(registration_contract, assert_tx_failed):
+    values = [0, 2**64 - 1] + [randint(1, 2**64 - 2) for _ in range(10)]
+    for value in values:
+        call = registration_contract.functions.from_little_endian_64((value).to_bytes(8, 'little'))
+        assert call.call() == value
+
+
 @pytest.mark.parametrize(
     'success,deposit_amount',
     [
