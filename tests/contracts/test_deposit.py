@@ -89,10 +89,7 @@ def test_deposit_log(registration_contract, a0, w3):
         log = logs[0]['args']
 
         amount_bytes8 = deposit_amount[i].to_bytes(8, 'little')
-        timestamp_bytes8 = int(
-            w3.eth.getBlock(w3.eth.blockNumber)['timestamp']
-        ).to_bytes(8, 'little')
-        assert log['data'] == amount_bytes8 + timestamp_bytes8 + deposit_input
+        assert log['data'] == amount_bytes8 + deposit_input
         assert log['merkle_tree_index'] == i.to_bytes(8, 'little')
 
 
@@ -115,11 +112,8 @@ def test_deposit_tree(registration_contract, w3, assert_tx_failed):
         assert len(logs) == 1
         log = logs[0]['args']
 
-        timestamp_bytes8 = int(
-            w3.eth.getBlock(w3.eth.blockNumber)['timestamp']
-        ).to_bytes(8, 'little')
         amount_bytes8 = deposit_amount[i].to_bytes(8, 'little')
-        data = amount_bytes8 + timestamp_bytes8 + deposit_input
+        data = amount_bytes8 + deposit_input
         assert log["data"] == data
         assert log["merkle_tree_index"] == i.to_bytes(8, 'little')
         leaf_nodes.append(hash(data))
