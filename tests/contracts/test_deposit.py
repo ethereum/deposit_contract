@@ -52,6 +52,13 @@ def test_to_little_endian_64(registration_contract, value, success, assert_tx_fa
         )
 
 
+def test_from_little_endian_64(registration_contract, assert_tx_failed):
+    values = [0, 2**64 - 1] + [randint(1, 2**64 - 2) for _ in range(10)]
+    for value in values:
+        call = registration_contract.functions.from_little_endian_64((value).to_bytes(8, 'little'))
+        assert call.call() == value
+
+
 @pytest.mark.parametrize(
     'success,deposit_amount',
     [
@@ -63,7 +70,8 @@ def test_to_little_endian_64(registration_contract, value, success, assert_tx_fa
 )
 def test_deposit_amount(registration_contract, w3, success, deposit_amount, assert_tx_failed):
 
-    call = registration_contract.functions.deposit(b'\x10' * 512)
+    deposit_data = b'\x10' * 80 + deposit_amount.to_bytes(8, 'little') + b'\x10' * 96
+    call = registration_contract.functions.deposit(deposit_data)
     if success:
         assert call.transact({"value": deposit_amount * eth_utils.denoms.gwei})
     else:
@@ -79,20 +87,16 @@ def test_deposit_log(registration_contract, a0, w3):
 
     deposit_amount = [randint(MIN_DEPOSIT_AMOUNT, MAX_DEPOSIT_AMOUNT) for _ in range(3)]
     for i in range(3):
-        deposit_input = (i + 1).to_bytes(1, 'little') * 512
+        deposit_data = b'\x10' * 80 + deposit_amount[i].to_bytes(8, 'little') + b'\x10' * 96
         registration_contract.functions.deposit(
-            deposit_input,
+            deposit_data,
         ).transact({"value": deposit_amount[i] * eth_utils.denoms.gwei})
 
         logs = log_filter.get_new_entries()
         assert len(logs) == 1
         log = logs[0]['args']
 
-        amount_bytes8 = deposit_amount[i].to_bytes(8, 'little')
-        timestamp_bytes8 = int(
-            w3.eth.getBlock(w3.eth.blockNumber)['timestamp']
-        ).to_bytes(8, 'little')
-        assert log['data'] == amount_bytes8 + timestamp_bytes8 + deposit_input
+        assert log['data'] == deposit_data
         assert log['merkle_tree_index'] == i.to_bytes(8, 'little')
 
 
@@ -104,9 +108,9 @@ def test_deposit_tree(registration_contract, w3, assert_tx_failed):
     deposit_amount = [randint(MIN_DEPOSIT_AMOUNT, MAX_DEPOSIT_AMOUNT) for _ in range(10)]
     leaf_nodes = []
     for i in range(0, 10):
-        deposit_input = (i + 1).to_bytes(1, 'little') * 512
+        deposit_data = b'\x10' * 80 + deposit_amount[i].to_bytes(8, 'little') + b'\x10' * 96
         tx_hash = registration_contract.functions.deposit(
-            deposit_input,
+            deposit_data,
         ).transact({"value": deposit_amount[i] * eth_utils.denoms.gwei})
         receipt = w3.eth.getTransactionReceipt(tx_hash)
         print("deposit transaction consumes %d gas" % receipt['gasUsed'])
@@ -115,14 +119,9 @@ def test_deposit_tree(registration_contract, w3, assert_tx_failed):
         assert len(logs) == 1
         log = logs[0]['args']
 
-        timestamp_bytes8 = int(
-            w3.eth.getBlock(w3.eth.blockNumber)['timestamp']
-        ).to_bytes(8, 'little')
-        amount_bytes8 = deposit_amount[i].to_bytes(8, 'little')
-        data = amount_bytes8 + timestamp_bytes8 + deposit_input
-        assert log["data"] == data
+        assert log["data"] == deposit_data
         assert log["merkle_tree_index"] == i.to_bytes(8, 'little')
-        leaf_nodes.append(hash(data))
+        leaf_nodes.append(hash(deposit_data))
         root = compute_merkle_root(leaf_nodes)
         assert root == registration_contract.functions.get_deposit_root().call()
 
@@ -140,27 +139,27 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
     for i in range(t):
         if i == index_not_full_deposit:
             # Deposit with value below MAX_DEPOSIT_AMOUNT
-            deposit_input = b'\x01' * 512
+            deposit_data = b'\x10' * 80 + MIN_DEPOSIT_AMOUNT.to_bytes(8, 'little') + b'\x10' * 96
             modified_registration_contract.functions.deposit(
-                deposit_input,
+                deposit_data,
             ).transact({"value": min_deposit_amount})
             logs = log_filter.get_new_entries()
             # Eth2Genesis event should not be triggered
             assert len(logs) == 0
         else:
             # Deposit with value MAX_DEPOSIT_AMOUNT
-            deposit_input = i.to_bytes(1, 'little') * 512
+            deposit_data = b'\x10' * 80 + MAX_DEPOSIT_AMOUNT.to_bytes(8, 'little') + b'\x10' * 96
             modified_registration_contract.functions.deposit(
-                deposit_input,
+                deposit_data,
             ).transact({"value": max_deposit_amount})
             logs = log_filter.get_new_entries()
             # Eth2Genesis event should not be triggered
             assert len(logs) == 0
 
     # Make 1 more deposit with value MAX_DEPOSIT_AMOUNT to trigger Eth2Genesis event
-    deposit_input = b'\x06' * 512
+    deposit_data = b'\x10' * 80 + MAX_DEPOSIT_AMOUNT.to_bytes(8, 'little') + b'\x10' * 96
     modified_registration_contract.functions.deposit(
-        deposit_input,
+        deposit_data,
     ).transact({"value": max_deposit_amount})
     logs = log_filter.get_new_entries()
     assert len(logs) == 1
@@ -172,9 +171,9 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed):
     assert modified_registration_contract.functions.chainStarted().call() is True
 
     # Make 1 deposit with value MAX_DEPOSIT_AMOUNT and check that Eth2Genesis event is not triggered
-    deposit_input = b'\x07' * 512
+    deposit_data = b'\x10' * 80 + MAX_DEPOSIT_AMOUNT.to_bytes(8, 'little') + b'\x10' * 96
     modified_registration_contract.functions.deposit(
-        deposit_input,
+        deposit_data,
     ).transact({"value": max_deposit_amount})
     logs = log_filter.get_new_entries()
     assert len(logs) == 0

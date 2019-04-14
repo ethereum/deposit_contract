@@ -5,7 +5,7 @@ DEPOSIT_CONTRACT_TREE_DEPTH: constant(uint256) = 32
 SECONDS_PER_DAY: constant(uint256) = 86400
 MAX_64_BIT_VALUE: constant(uint256) = 18446744073709551615  # 2**64 - 1
 
-Deposit: event({data: bytes[528], merkle_tree_index: bytes[8]})
+Deposit: event({data: bytes[184], merkle_tree_index: bytes[8]})
 Eth2Genesis: event({deposit_root: bytes32, deposit_count: bytes[8], time: bytes[8]})
 
 zerohashes: bytes32[DEPOSIT_CONTRACT_TREE_DEPTH]
@@ -41,6 +41,18 @@ def to_little_endian_64(value: uint256) -> bytes[8]:
 
 @public
 @constant
+def from_little_endian_64(value: bytes[8]) -> uint256:
+    y: uint256 = 0
+    x: uint256 = convert(value, uint256)
+    for i in range(8):
+        y = y + shift(bitwise_and(x, 255), 8 * (7-i))
+        x = shift(x, -8)
+
+    return y
+
+
+@public
+@constant
 def get_deposit_root() -> bytes32:
     root: bytes32 = 0x0000000000000000000000000000000000000000000000000000000000000000
     size: uint256 = self.deposit_count
@@ -59,19 +71,17 @@ def get_deposit_count() -> bytes[8]:
 
 @payable
 @public
-def deposit(deposit_input: bytes[512]):
-    deposit_amount: uint256 = msg.value / as_wei_value(1, "gwei")
+# `deposit_data` includes:
+# 48 bytes `pubkey`, 32 bytes `withdrawal_credentials`, 8 bytes `amount`
+# and 96 bytes `proof_of_possession`.
+def deposit(deposit_data: bytes[184]):
+    deposit_amount: uint256 = self.from_little_endian_64(slice(deposit_data, start=80, len=8))
 
+    assert deposit_amount == msg.value / as_wei_value(1, "gwei")
     assert deposit_amount >= MIN_DEPOSIT_AMOUNT
     assert deposit_amount <= MAX_DEPOSIT_AMOUNT
 
     index: uint256 = self.deposit_count
-    deposit_timestamp: uint256 = as_unitless_number(block.timestamp)
-    deposit_data: bytes[528] = concat(
-        self.to_little_endian_64(deposit_amount),
-        self.to_little_endian_64(deposit_timestamp),
-        deposit_input,
-    )
 
     # add deposit to merkle tree
     i: int128 = 0
