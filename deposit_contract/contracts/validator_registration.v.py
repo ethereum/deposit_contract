@@ -18,7 +18,7 @@ chainStarted: public(bool)
 @public
 def __init__():
     for i in range(DEPOSIT_CONTRACT_TREE_DEPTH - 1):
-        self.zerohashes[i+1] = sha3(concat(self.zerohashes[i], self.zerohashes[i]))
+        self.zerohashes[i+1] = sha256(concat(self.zerohashes[i], self.zerohashes[i]))
         self.branch[i+1] = self.zerohashes[i + 1]
 
 
@@ -58,9 +58,9 @@ def get_deposit_root() -> bytes32:
     size: uint256 = self.deposit_count
     for h in range(DEPOSIT_CONTRACT_TREE_DEPTH):
         if bitwise_and(size, 1) == 1:
-            root = sha3(concat(self.branch[h], root))
+            root = sha256(concat(self.branch[h], root))
         else:
-            root = sha3(concat(root, self.zerohashes[h]))
+            root = sha256(concat(root, self.zerohashes[h]))
         size /= 2
     return root
 
@@ -92,10 +92,10 @@ def deposit(deposit_data: bytes[184]):
         i += 1
         power_of_two *= 2
 
-    value: bytes32 = sha3(deposit_data)
+    value: bytes32 = sha256(deposit_data)
     for j in range(DEPOSIT_CONTRACT_TREE_DEPTH):
         if j < i:
-            value = sha3(concat(self.branch[j], value))
+            value = sha256(concat(self.branch[j], value))
         else:
             break
     self.branch[i] = value
