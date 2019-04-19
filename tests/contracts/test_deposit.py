@@ -174,7 +174,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed, depos
     t = getattr(modified_registration_contract, 'chain_start_full_deposit_threshold')
     # CHAIN_START_FULL_DEPOSIT_THRESHOLD is set to t
     min_deposit_amount = MIN_DEPOSIT_AMOUNT * eth_utils.denoms.gwei  # in wei
-    max_deposit_amount = FULL_DEPOSIT_AMOUNT * eth_utils.denoms.gwei
+    full_deposit_amount = FULL_DEPOSIT_AMOUNT * eth_utils.denoms.gwei
     log_filter = modified_registration_contract.events.Eth2Genesis.createFilter(
         fromBlock='latest',
     )
@@ -193,7 +193,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed, depos
             # Deposit with value FULL_DEPOSIT_AMOUNT
             modified_registration_contract.functions.deposit(
                 *deposit_input,
-            ).transact({"value": max_deposit_amount})
+            ).transact({"value": full_deposit_amount})
             logs = log_filter.get_new_entries()
             # Eth2Genesis event should not be triggered
             assert len(logs) == 0
@@ -201,7 +201,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed, depos
     # Make 1 more deposit with value FULL_DEPOSIT_AMOUNT to trigger Eth2Genesis event
     modified_registration_contract.functions.deposit(
         *deposit_input,
-    ).transact({"value": max_deposit_amount})
+    ).transact({"value": full_deposit_amount})
     logs = log_filter.get_new_entries()
     assert len(logs) == 1
     timestamp = int(w3.eth.getBlock(w3.eth.blockNumber)['timestamp'])
@@ -214,6 +214,6 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed, depos
     # Make 1 deposit with value FULL_DEPOSIT_AMOUNT and check that Eth2Genesis event is not triggered
     modified_registration_contract.functions.deposit(
         *deposit_input,
-    ).transact({"value": max_deposit_amount})
+    ).transact({"value": full_deposit_amount})
     logs = log_filter.get_new_entries()
     assert len(logs) == 0
