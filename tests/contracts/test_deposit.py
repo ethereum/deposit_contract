@@ -8,7 +8,6 @@ from random import (
 import pytest
 
 import eth_utils
-
 from tests.contracts.conftest import (
     DEPOSIT_CONTRACT_TREE_DEPTH,
     MAX_DEPOSIT_AMOUNT,
@@ -18,7 +17,6 @@ from tests.utils.minimal_ssz import (
     SSZType,
     hash_tree_root,
 )
-
 
 DepositData = SSZType({
     # BLS pubkey

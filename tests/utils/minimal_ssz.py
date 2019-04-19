@@ -1,5 +1,6 @@
-from hashlib import sha256
-
+from hashlib import (
+    sha256,
+)
 
 BYTES_PER_CHUNK = 32
 BYTES_PER_LENGTH_PREFIX = 4
