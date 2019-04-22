@@ -5,7 +5,13 @@ DEPOSIT_CONTRACT_TREE_DEPTH: constant(uint256) = 32
 SECONDS_PER_DAY: constant(uint256) = 86400
 MAX_64_BIT_VALUE: constant(uint256) = 18446744073709551615  # 2**64 - 1
 
-Deposit: event({data: bytes[184], merkle_tree_index: bytes[8]})
+Deposit: event({
+    pubkey: bytes[48],
+    withdrawal_credentials: bytes[32],
+    amount: bytes[8],
+    signature: bytes[96],
+    merkle_tree_index: bytes[8],
+})
 Eth2Genesis: event({deposit_root: bytes32, deposit_count: bytes[8], time: bytes[8]})
 
 zerohashes: bytes32[DEPOSIT_CONTRACT_TREE_DEPTH]
@@ -71,15 +77,11 @@ def get_deposit_count() -> bytes[8]:
 
 @payable
 @public
-# `deposit_data` includes:
-# 48 bytes `pubkey`, 32 bytes `withdrawal_credentials`, 8 bytes `amount`
-# and 96 bytes `proof_of_possession`.
-def deposit(deposit_data: bytes[184]):
-    deposit_amount: uint256 = self.from_little_endian_64(slice(deposit_data, start=80, len=8))
-
-    assert deposit_amount == msg.value / as_wei_value(1, "gwei")
+def deposit(pubkey: bytes[48], withdrawal_credentials: bytes[32], signature: bytes[96]):
+    deposit_amount: uint256 = msg.value / as_wei_value(1, "gwei")
     assert deposit_amount >= MIN_DEPOSIT_AMOUNT
     assert deposit_amount <= MAX_DEPOSIT_AMOUNT
+    amount: bytes[8] = self.to_little_endian_64(deposit_amount)
 
     index: uint256 = self.deposit_count
 
@@ -92,7 +94,20 @@ def deposit(deposit_data: bytes[184]):
         i += 1
         power_of_two *= 2
 
-    value: bytes32 = sha256(deposit_data)
+    zero_bytes_32: bytes32
+    pubkey_root: bytes32 = sha256(concat(pubkey, slice(zero_bytes_32, start=0, len=16)))
+    signature_root: bytes32 = sha256(concat(
+        sha256(slice(signature, start=0, len=64)),
+        sha256(concat(slice(signature, start=64, len=32), zero_bytes_32))
+    ))
+    value: bytes32 = sha256(concat(
+        sha256(concat(pubkey_root, withdrawal_credentials)),
+        sha256(concat(
+            amount,
+            slice(zero_bytes_32, start=0, len=24),
+            signature_root,
+        ))
+    ))
     for j in range(DEPOSIT_CONTRACT_TREE_DEPTH):
         if j < i:
             value = sha256(concat(self.branch[j], value))
@@ -102,7 +117,13 @@ def deposit(deposit_data: bytes[184]):
 
     self.deposit_count += 1
     new_deposit_root: bytes32 = self.get_deposit_root()
-    log.Deposit(deposit_data, self.to_little_endian_64(index))
+    log.Deposit(
+        pubkey,
+        withdrawal_credentials,
+        amount,
+        signature,
+        self.to_little_endian_64(index),
+    )
 
     if deposit_amount == MAX_DEPOSIT_AMOUNT:
         self.full_deposit_count += 1
