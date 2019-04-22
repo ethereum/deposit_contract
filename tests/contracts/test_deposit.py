@@ -26,7 +26,7 @@ DepositData = SSZType({
     # Amount in Gwei
     'amount': 'uint64',
     # Container self-signature
-    'proof_of_possession': 'bytes96',
+    'signature': 'bytes96',
 })
 
 
@@ -162,7 +162,7 @@ def test_deposit_tree(registration_contract, w3, assert_tx_failed, deposit_input
             pubkey=deposit_input[0],
             withdrawal_credentials=deposit_input[1],
             amount=deposit_amount_list[i],
-            proof_of_possession=deposit_input[2],
+            signature=deposit_input[2],
         )
         hash_tree_root_result = hash_tree_root(deposit_data)
         leaf_nodes.append(hash_tree_root_result)
