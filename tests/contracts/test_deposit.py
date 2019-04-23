@@ -211,7 +211,8 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed, depos
     assert int.from_bytes(log['time'], byteorder='little') == timestamp_day_boundary
     assert modified_registration_contract.functions.chainStarted().call() is True
 
-    # Make 1 deposit with value FULL_DEPOSIT_AMOUNT and check that Eth2Genesis event is not triggered
+    # Make 1 deposit with value FULL_DEPOSIT_AMOUNT and
+    # check that Eth2Genesis event is not triggered
     modified_registration_contract.functions.deposit(
         *deposit_input,
     ).transact({"value": full_deposit_amount})
