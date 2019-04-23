@@ -1,5 +1,5 @@
 MIN_DEPOSIT_AMOUNT: constant(uint256) = 1000000000  # Gwei
-MAX_DEPOSIT_AMOUNT: constant(uint256) = 32000000000  # Gwei
+FULL_DEPOSIT_AMOUNT: constant(uint256) = 32000000000  # Gwei
 CHAIN_START_FULL_DEPOSIT_THRESHOLD: constant(uint256) = 65536  # 2**16
 DEPOSIT_CONTRACT_TREE_DEPTH: constant(uint256) = 32
 SECONDS_PER_DAY: constant(uint256) = 86400
@@ -80,7 +80,6 @@ def get_deposit_count() -> bytes[8]:
 def deposit(pubkey: bytes[48], withdrawal_credentials: bytes[32], signature: bytes[96]):
     deposit_amount: uint256 = msg.value / as_wei_value(1, "gwei")
     assert deposit_amount >= MIN_DEPOSIT_AMOUNT
-    assert deposit_amount <= MAX_DEPOSIT_AMOUNT
     amount: bytes[8] = self.to_little_endian_64(deposit_amount)
 
     index: uint256 = self.deposit_count
@@ -125,7 +124,7 @@ def deposit(pubkey: bytes[48], withdrawal_credentials: bytes[32], signature: byt
         self.to_little_endian_64(index),
     )
 
-    if deposit_amount == MAX_DEPOSIT_AMOUNT:
+    if deposit_amount >= FULL_DEPOSIT_AMOUNT:
         self.full_deposit_count += 1
         if self.full_deposit_count == CHAIN_START_FULL_DEPOSIT_THRESHOLD:
             timestamp_day_boundary: uint256 = (

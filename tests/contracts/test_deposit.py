@@ -10,7 +10,7 @@ import pytest
 import eth_utils
 from tests.contracts.conftest import (
     DEPOSIT_CONTRACT_TREE_DEPTH,
-    MAX_DEPOSIT_AMOUNT,
+    FULL_DEPOSIT_AMOUNT,
     MIN_DEPOSIT_AMOUNT,
 )
 from tests.utils.minimal_ssz import (
@@ -38,7 +38,7 @@ def compute_merkle_root(leaf_nodes):
     assert len(leaf_nodes) >= 1
     empty_node = b'\x00' * 32
     child_nodes = leaf_nodes[:]
-    for i in range(DEPOSIT_CONTRACT_TREE_DEPTH):
+    for _ in range(DEPOSIT_CONTRACT_TREE_DEPTH):
         parent_nodes = []
         if len(child_nodes) % 2 == 1:
             child_nodes.append(empty_node)
@@ -95,10 +95,10 @@ def test_from_little_endian_64(registration_contract, assert_tx_failed):
 @pytest.mark.parametrize(
     'success,deposit_amount',
     [
-        (True, MAX_DEPOSIT_AMOUNT),
+        (True, FULL_DEPOSIT_AMOUNT),
         (True, MIN_DEPOSIT_AMOUNT),
         (False, MIN_DEPOSIT_AMOUNT - 1),
-        (False, MAX_DEPOSIT_AMOUNT + 1)
+        (True, FULL_DEPOSIT_AMOUNT + 1)
     ]
 )
 def test_deposit_amount(registration_contract,
@@ -121,7 +121,7 @@ def test_deposit_log(registration_contract, a0, w3, deposit_input):
         fromBlock='latest',
     )
 
-    deposit_amount_list = [randint(MIN_DEPOSIT_AMOUNT, MAX_DEPOSIT_AMOUNT) for _ in range(3)]
+    deposit_amount_list = [randint(MIN_DEPOSIT_AMOUNT, FULL_DEPOSIT_AMOUNT * 2) for _ in range(3)]
     for i in range(3):
         registration_contract.functions.deposit(
             *deposit_input,
@@ -143,7 +143,7 @@ def test_deposit_tree(registration_contract, w3, assert_tx_failed, deposit_input
         fromBlock='latest',
     )
 
-    deposit_amount_list = [MAX_DEPOSIT_AMOUNT for _ in range(10)]
+    deposit_amount_list = [randint(MIN_DEPOSIT_AMOUNT, FULL_DEPOSIT_AMOUNT * 2) for _ in range(10)]
     leaf_nodes = []
     for i in range(0, 10):
         tx_hash = registration_contract.functions.deposit(
@@ -174,7 +174,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed, depos
     t = getattr(modified_registration_contract, 'chain_start_full_deposit_threshold')
     # CHAIN_START_FULL_DEPOSIT_THRESHOLD is set to t
     min_deposit_amount = MIN_DEPOSIT_AMOUNT * eth_utils.denoms.gwei  # in wei
-    max_deposit_amount = MAX_DEPOSIT_AMOUNT * eth_utils.denoms.gwei
+    full_deposit_amount = FULL_DEPOSIT_AMOUNT * eth_utils.denoms.gwei
     log_filter = modified_registration_contract.events.Eth2Genesis.createFilter(
         fromBlock='latest',
     )
@@ -182,7 +182,7 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed, depos
     index_not_full_deposit = randint(0, t - 1)
     for i in range(t):
         if i == index_not_full_deposit:
-            # Deposit with value below MAX_DEPOSIT_AMOUNT
+            # Deposit with value below FULL_DEPOSIT_AMOUNT
             modified_registration_contract.functions.deposit(
                 *deposit_input,
             ).transact({"value": min_deposit_amount})
@@ -190,18 +190,18 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed, depos
             # Eth2Genesis event should not be triggered
             assert len(logs) == 0
         else:
-            # Deposit with value MAX_DEPOSIT_AMOUNT
+            # Deposit with value FULL_DEPOSIT_AMOUNT
             modified_registration_contract.functions.deposit(
                 *deposit_input,
-            ).transact({"value": max_deposit_amount})
+            ).transact({"value": full_deposit_amount})
             logs = log_filter.get_new_entries()
             # Eth2Genesis event should not be triggered
             assert len(logs) == 0
 
-    # Make 1 more deposit with value MAX_DEPOSIT_AMOUNT to trigger Eth2Genesis event
+    # Make 1 more deposit with value FULL_DEPOSIT_AMOUNT to trigger Eth2Genesis event
     modified_registration_contract.functions.deposit(
         *deposit_input,
-    ).transact({"value": max_deposit_amount})
+    ).transact({"value": full_deposit_amount})
     logs = log_filter.get_new_entries()
     assert len(logs) == 1
     timestamp = int(w3.eth.getBlock(w3.eth.blockNumber)['timestamp'])
@@ -211,9 +211,10 @@ def test_chain_start(modified_registration_contract, w3, assert_tx_failed, depos
     assert int.from_bytes(log['time'], byteorder='little') == timestamp_day_boundary
     assert modified_registration_contract.functions.chainStarted().call() is True
 
-    # Make 1 deposit with value MAX_DEPOSIT_AMOUNT and check that Eth2Genesis event is not triggered
+    # Make 1 deposit with value FULL_DEPOSIT_AMOUNT and
+    # check that Eth2Genesis event is not triggered
     modified_registration_contract.functions.deposit(
         *deposit_input,
-    ).transact({"value": max_deposit_amount})
+    ).transact({"value": full_deposit_amount})
     logs = log_filter.get_new_entries()
     assert len(logs) == 0
