@@ -4,6 +4,9 @@ CHAIN_START_FULL_DEPOSIT_THRESHOLD: constant(uint256) = 65536  # 2**16
 DEPOSIT_CONTRACT_TREE_DEPTH: constant(uint256) = 32
 SECONDS_PER_DAY: constant(uint256) = 86400
 MAX_64_BIT_VALUE: constant(uint256) = 18446744073709551615  # 2**64 - 1
+PUBKEY_LENGTH: constant(uint256) = 48  # bytes
+WITHDRAWAL_CREDENTIALS_LENGTH: constant(uint256) = 32  # bytes
+SIGNATURE_LENGTH: constant(uint256) = 96  # bytes
 
 Deposit: event({
     pubkey: bytes[48],
@@ -66,6 +69,10 @@ def get_deposit_count() -> bytes[8]:
 @payable
 @public
 def deposit(pubkey: bytes[48], withdrawal_credentials: bytes[32], signature: bytes[96]):
+    assert len(pubkey) == PUBKEY_LENGTH
+    assert len(withdrawal_credentials) == WITHDRAWAL_CREDENTIALS_LENGTH
+    assert len(signature) == SIGNATURE_LENGTH
+
     deposit_amount: uint256 = msg.value / as_wei_value(1, "gwei")
     assert deposit_amount >= MIN_DEPOSIT_AMOUNT
     amount: bytes[8] = self.to_little_endian_64(deposit_amount)

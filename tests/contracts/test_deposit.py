@@ -109,6 +109,38 @@ def test_deposit_amount(registration_contract,
         )
 
 
+def test_deposit_inputs(registration_contract,
+                        w3,
+                        assert_tx_failed,
+                        deposit_input):
+    call = registration_contract.functions.deposit(
+        deposit_input[0][2:],
+        deposit_input[1],
+        deposit_input[2],
+    )
+    assert_tx_failed(
+        lambda: call.transact({"value": FULL_DEPOSIT_AMOUNT * eth_utils.denoms.gwei})
+    )
+
+    call = registration_contract.functions.deposit(
+        deposit_input[0],
+        deposit_input[1][2:],
+        deposit_input[2],
+    )
+    assert_tx_failed(
+        lambda: call.transact({"value": FULL_DEPOSIT_AMOUNT * eth_utils.denoms.gwei})
+    )
+
+    call = registration_contract.functions.deposit(
+        deposit_input[0],
+        deposit_input[1],
+        deposit_input[2][2:],
+    )
+    assert_tx_failed(
+        lambda: call.transact({"value": FULL_DEPOSIT_AMOUNT * eth_utils.denoms.gwei})
+    )
+
+
 def test_deposit_log(registration_contract, a0, w3, deposit_input):
     log_filter = registration_contract.events.Deposit.createFilter(
         fromBlock='latest',
