@@ -29,7 +29,6 @@ chainStarted: public(bool)
 def __init__():
     for i in range(DEPOSIT_CONTRACT_TREE_DEPTH - 1):
         self.zerohashes[i+1] = sha256(concat(self.zerohashes[i], self.zerohashes[i]))
-        self.branch[i+1] = self.zerohashes[i + 1]
 
 
 @public
