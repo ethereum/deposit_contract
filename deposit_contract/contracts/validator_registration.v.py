@@ -7,6 +7,7 @@ MAX_64_BIT_VALUE: constant(uint256) = 18446744073709551615  # 2**64 - 1
 PUBKEY_LENGTH: constant(uint256) = 48  # bytes
 WITHDRAWAL_CREDENTIALS_LENGTH: constant(uint256) = 32  # bytes
 SIGNATURE_LENGTH: constant(uint256) = 96  # bytes
+MAX_DEPOSIT_COUNT: constant(uint256) = 4294967295 # 2**DEPOSIT_CONTRACT_TREE_DEPTH - 1
 
 Deposit: event({
     pubkey: bytes[48],
@@ -71,6 +72,11 @@ def get_deposit_count() -> bytes[8]:
 def deposit(pubkey: bytes[PUBKEY_LENGTH],
             withdrawal_credentials: bytes[WITHDRAWAL_CREDENTIALS_LENGTH],
             signature: bytes[SIGNATURE_LENGTH]):
+    # Prevent edge case in computing `self.branch` when `self.deposit_count == MAX_DEPOSIT_COUNT`
+    # NOTE: reaching this point with the constants as currently defined is impossible due to the
+    # uni-directional nature of transfers from eth1 to eth2 and the total ether supply (< 130M).
+    assert self.deposit_count < MAX_DEPOSIT_COUNT
+
     assert len(pubkey) == PUBKEY_LENGTH
     assert len(withdrawal_credentials) == WITHDRAWAL_CREDENTIALS_LENGTH
     assert len(signature) == SIGNATURE_LENGTH
