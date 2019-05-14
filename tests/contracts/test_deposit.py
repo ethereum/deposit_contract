@@ -109,36 +109,41 @@ def test_deposit_amount(registration_contract,
         )
 
 
+@pytest.mark.parametrize(
+    'invalid_pubkey,invalid_withdrawal_credentials,invalid_signature,success',
+    [
+        (False, False, False, True),
+        (True, False, False, False),
+        (False, True, False, False),
+        (False, False, True, False),
+    ]
+)
 def test_deposit_inputs(registration_contract,
                         w3,
                         assert_tx_failed,
-                        deposit_input):
-    call = registration_contract.functions.deposit(
-        deposit_input[0][2:],
-        deposit_input[1],
-        deposit_input[2],
-    )
-    assert_tx_failed(
-        lambda: call.transact({"value": FULL_DEPOSIT_AMOUNT * eth_utils.denoms.gwei})
-    )
+                        deposit_input,
+                        invalid_pubkey,
+                        invalid_withdrawal_credentials,
+                        invalid_signature,
+                        success):
+    pubkey = deposit_input[0][2:] if invalid_pubkey else deposit_input[0]
+    if invalid_withdrawal_credentials:  # this one is different to satisfy linter
+        withdrawal_credentials = deposit_input[1][2:]
+    else:
+        withdrawal_credentials = deposit_input[1]
+    signature = deposit_input[2][2:] if invalid_signature else deposit_input[2]
 
     call = registration_contract.functions.deposit(
-        deposit_input[0],
-        deposit_input[1][2:],
-        deposit_input[2],
+        pubkey,
+        withdrawal_credentials,
+        signature,
     )
-    assert_tx_failed(
-        lambda: call.transact({"value": FULL_DEPOSIT_AMOUNT * eth_utils.denoms.gwei})
-    )
-
-    call = registration_contract.functions.deposit(
-        deposit_input[0],
-        deposit_input[1],
-        deposit_input[2][2:],
-    )
-    assert_tx_failed(
-        lambda: call.transact({"value": FULL_DEPOSIT_AMOUNT * eth_utils.denoms.gwei})
-    )
+    if success:
+        assert call.transact({"value": FULL_DEPOSIT_AMOUNT * eth_utils.denoms.gwei})
+    else:
+        assert_tx_failed(
+            lambda: call.transact({"value": FULL_DEPOSIT_AMOUNT * eth_utils.denoms.gwei})
+        )
 
 
 def test_deposit_log(registration_contract, a0, w3, deposit_input):

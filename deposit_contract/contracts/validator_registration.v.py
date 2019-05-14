@@ -68,7 +68,9 @@ def get_deposit_count() -> bytes[8]:
 
 @payable
 @public
-def deposit(pubkey: bytes[48], withdrawal_credentials: bytes[32], signature: bytes[96]):
+def deposit(pubkey: bytes[PUBKEY_LENGTH],
+            withdrawal_credentials: bytes[WITHDRAWAL_CREDENTIALS_LENGTH],
+            signature: bytes[SIGNATURE_LENGTH]):
     assert len(pubkey) == PUBKEY_LENGTH
     assert len(withdrawal_credentials) == WITHDRAWAL_CREDENTIALS_LENGTH
     assert len(signature) == SIGNATURE_LENGTH
