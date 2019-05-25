@@ -117,7 +117,6 @@ def deposit(pubkey: bytes[PUBKEY_LENGTH],
     self.branch[i] = value
 
     self.deposit_count += 1
-    new_deposit_root: bytes32 = self.get_deposit_root()
     log.Deposit(
         pubkey,
         withdrawal_credentials,
@@ -134,6 +133,7 @@ def deposit(pubkey: bytes[PUBKEY_LENGTH],
                 as_unitless_number(block.timestamp) % SECONDS_PER_DAY +
                 2 * SECONDS_PER_DAY
             )
+            new_deposit_root: bytes32 = self.get_deposit_root()
             log.Eth2Genesis(new_deposit_root,
                             self.to_little_endian_64(self.deposit_count),
                             self.to_little_endian_64(timestamp_day_boundary))
