@@ -88,12 +88,12 @@ def deposit(pubkey: bytes[PUBKEY_LENGTH],
 
     # add deposit to merkle tree
     i: int128 = 0
-    power_of_two: uint256 = 2
+    size: uint256 = index + 1
     for _ in range(DEPOSIT_CONTRACT_TREE_DEPTH):
-        if (index+1) % power_of_two != 0:
+        if bitwise_and(size, 1) == 1:
             break
         i += 1
-        power_of_two *= 2
+        size /= 2
 
     zero_bytes_32: bytes32
     pubkey_root: bytes32 = sha256(concat(pubkey, slice(zero_bytes_32, start=0, len=16)))
@@ -117,7 +117,6 @@ def deposit(pubkey: bytes[PUBKEY_LENGTH],
     self.branch[i] = value
 
     self.deposit_count += 1
-    new_deposit_root: bytes32 = self.get_deposit_root()
     log.Deposit(
         pubkey,
         withdrawal_credentials,
@@ -134,6 +133,7 @@ def deposit(pubkey: bytes[PUBKEY_LENGTH],
                 as_unitless_number(block.timestamp) % SECONDS_PER_DAY +
                 2 * SECONDS_PER_DAY
             )
+            new_deposit_root: bytes32 = self.get_deposit_root()
             log.Eth2Genesis(new_deposit_root,
                             self.to_little_endian_64(self.deposit_count),
                             self.to_little_endian_64(timestamp_day_boundary))
